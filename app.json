@@ -1,0 +1,90 @@
+{
+    "id": "com.irobot.roomba980",
+    "name": {
+        "en": "Roomba 980"
+    },
+    "sdk": 2,
+    "version": "1.0.0",
+    "compatibility": "1.x >= 1.5.0",
+    "author": {
+        "name": "Wouter van den Brink",
+        "email": "wouter@athom.nl"
+    },
+    "flow": {
+        "actions": [
+            {
+                "id": "start_vacuum",
+                "title": {
+                    "en": "Start vacuuming",
+                    "nl": "Begin met stofzuigen"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=roomba980"
+                    }
+                ]
+            },
+            {
+                "id": "stop_vacuum",
+                "title": {
+                    "en": "Stop vacuuming",
+                    "nl": "Stop met stofzuigen"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=roomba980"
+                    }
+                ]
+            },
+            {
+                "id": "dock",
+                "title": {
+                    "en": "Go to dock",
+                    "nl": "Ga naar de basis"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=roomba980"
+                    }
+                ]
+            }
+        ]
+    },
+    "drivers": [
+        {
+            "id": "roomba980",
+            "name": {
+                "en": "Roomba 980"
+            },
+            "class": "vacuumcleaner",
+            "capabilities": [
+                "vacuumcleaner_state",
+                "measure_battery"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_roomba"
+                    },
+                    "options": {
+                        "singular": true
+                    }
+                },
+                {
+                    "id": "add_roomba",
+                    "navigation": {
+                        "next": "done"
+                    }
+                }
+            ]
+        }
+    ]
+}

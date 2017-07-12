@@ -1,0 +1,42 @@
+<script>
+    Homey.setTitle(__('pair.add.title'));
+
+    var device = window.selected_devices[0];
+
+    device = JSON.parse(device);
+
+    var interval;
+
+    function check() {
+        console.log('Checking');
+
+        Homey.emit('check', {
+            ip: device.ip
+        }, function (err, result) {
+            if (err) return console.error(err);
+
+            if (result.status === 'success') {
+                device.auth.password = result.data;
+
+                Homey.addDevice({
+                    data: device,
+                    name: device.robotname
+                }, function (err, result) {
+                    if (err) return console.error(err);
+
+                    clearInterval(interval);
+                    Homey.done();
+                });
+            }
+        })
+    }
+
+    interval = setInterval(check, 10 * 1000);
+
+    // Maybe they've already pressed the button.
+    check();
+</script>
+
+<center>
+    <p data-i18n="pair.add.press_home"></p>
+</center>
