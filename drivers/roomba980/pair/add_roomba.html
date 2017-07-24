@@ -8,8 +8,6 @@
     var interval;
 
     function check() {
-        console.log('Checking');
-
         Homey.emit('check', {
             ip: device.ip
         }, function (err, result) {
@@ -17,6 +15,9 @@
 
             if (result.status === 'success') {
                 device.auth.password = result.data;
+
+                // We do not care about the IP address anymore.
+                delete device.ip;
 
                 Homey.addDevice({
                     data: device,
