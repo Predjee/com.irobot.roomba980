@@ -4,12 +4,20 @@ const dgram = require('dgram');
 
 const Homey = require('homey');
 
+/**
+ * This class attempts to find new Roombas on the network.
+ */
 class RoombaFinder {
     constructor() {
         this.listenServer = null;
         this.listening = false;
     }
 
+    /**
+     * Find any Roomba 980.
+     *
+     * @return {Promise} Promise which resolves with data about the Roomba.
+     */
     async findRoomba() {
         return new Promise((resolve, reject) => {
             let nextStep = () => {

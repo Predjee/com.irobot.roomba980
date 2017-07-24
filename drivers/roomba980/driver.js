@@ -6,12 +6,17 @@ const tls = require('tls');
 
 const RoombaFinder = require('./finder');
 
-
 class Roomba980Driver extends Homey.Driver {
     onInit() {
         this.finder = new RoombaFinder();
     }
 
+    /**
+     * Get the password of a Roomba.
+     * @param  {string}  ip IP address of the Roomba.
+     * @return {Promise} A promise resolving with the password, or rejecting if
+     * it could not be retrieved.
+     */
     async getPassword(ip) {
         return new Promise((resolve, reject) => {
             let client = tls.connect(8883, ip, {
@@ -26,7 +31,6 @@ class Roomba980Driver extends Homey.Driver {
             }, 5000);
 
             client.once('secureConnect', () => {
-                this.log('Sending auth request to Roomba.');
                 client.write(new Buffer('f005efcc3b2900', 'hex'));
             });
 
@@ -38,14 +42,11 @@ class Roomba980Driver extends Homey.Driver {
                     clearTimeout(timeout);
                     return;
                 }
-                this.log(e);
             });
 
             let sliceFrom = 13;
 
             client.on('data', (data) => {
-                this.log('Got data back from the Roomba: ' + data);
-
                 if (data.length === 2) {
                     // The Roomba somehow indicates that it's going to send the
                     // data differently. We prepare by adjusting sliceFrom
@@ -67,7 +68,6 @@ class Roomba980Driver extends Homey.Driver {
             });
 
             client.on('end', () => {
-                this.log('end');
                 if (!found) {
                     reject(new Error('Roomba took too long to respond!'));
                 }
@@ -87,7 +87,6 @@ class Roomba980Driver extends Homey.Driver {
                     });
                 })
                 .catch((err) => {
-                    this.log('Failed to retrieve auth details: ' + err);
                     if (err.code === 'ECONNREFUSED') {
                         callback(null, {
                             status: 'in_use',
@@ -107,8 +106,6 @@ class Roomba980Driver extends Homey.Driver {
         socket.on('list_devices', (data, callback) => {
             this.finder.findRoomba()
                 .then((data) => {
-                    this.log(`Found Roomba with IP = ${data.ip} and MAC = ${data.mac}.`);
-
                     // The dorita980 lib only gives back one device.
                     let devices = [
                         {
@@ -116,7 +113,7 @@ class Roomba980Driver extends Homey.Driver {
                             data: {
                                 mac: data.mac,
                                 ip: data.ip,
-                                name: data.name,
+                                name: data.robotname,
                                 auth: {
                                     username: data.blid,
                                     // The password is later discovered in add_roomba.
@@ -129,11 +126,11 @@ class Roomba980Driver extends Homey.Driver {
                     callback(null, devices);
                 })
                 .catch((err) => {
-                    this.log(err);
                     callback(err);
                     return;
                 });
         });
     }
 }
+
 module.exports = Roomba980Driver;

@@ -8,8 +8,6 @@ const RoombaFinder = require('./finder');
 
 class Roomba980Device extends Homey.Device {
     onInit() {
-        this.log('roomba980 init');
-
         this.data = this.getData();
 
         this.connected = false;
@@ -26,12 +24,18 @@ class Roomba980Device extends Homey.Device {
 
         this.reconnectInterval = setInterval(() => {
             if (!this.connected) {
-                this.log('Trying to find the Roomba.');
                 this.findRobot();
             }
         }, 15000);
     }
 
+    /**
+     * Attempts to find the Roomba and connect to it. Also adds event listeners.
+     *
+     * This method searches for any existing Roomba on the network and compares
+     * their MAC addresses. If it is the one we want (stored in device data), we
+     * connect to it.
+     */
     findRobot() {
         this.connected = false;
 
@@ -42,14 +46,8 @@ class Roomba980Device extends Homey.Device {
         this.finder.findRoomba()
             .then((robot) => {
                 if (robot.mac !== this.data.mac) {
-                    this.log(`Found robot MAC (${robot.mac}) is not what we wanted (${this.data.mac})`);
                     return;
                 }
-
-                this.log(`Found a robot with ${robot.mac} and ${robot.ip}.`);
-                this.log(`Logging in with ${this.data.auth.username} / ${this.data.auth.password}.`);
-
-                let robotInstanceId = Math.random();
 
                 try {
                     this.robot = new dorita980.Local(this.data.auth.username, this.data.auth.password, robot.ip);
@@ -64,16 +62,12 @@ class Roomba980Device extends Homey.Device {
                 }
 
                 this.robot.on('connect', () => {
-                    this.log(robotInstanceId + ' connect -> I\'m available now.');
-
                     this.connected = true;
 
                     this.setAvailable();
                 });
 
                 this.robot.on('close', () => {
-                    this.log(robotInstanceId + 'close -> I\'m unavailable now.');
-
                     this.connected = false;
 
                     this.disconnectFromRobot();
@@ -82,8 +76,6 @@ class Roomba980Device extends Homey.Device {
                 });
 
                 this.robot.on('offline', () => {
-                    this.log(robotInstanceId + 'offline -> I\'m unavailable now.');
-
                     this.connected = false;
 
                     this.disconnectFromRobot();
@@ -92,8 +84,6 @@ class Roomba980Device extends Homey.Device {
                 });
 
                 this.robot.on('state', (e) => {
-                    this.log(robotInstanceId + 'robot state=', e.cleanMissionStatus.cycle, e.cleanMissionStatus.phase);
-
                     this.setCapabilityValue('measure_battery', e.batPct);
 
                     let cycle = e.cleanMissionStatus.cycle,
@@ -123,14 +113,7 @@ class Roomba980Device extends Homey.Device {
                         this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning');
                     }
                 });
-            })
-            .catch((e) => {
-                this.log('Could not find any robot: ', e);
             });
-    }
-
-    getRobot() {
-        return this.robot;
     }
 
     onVacuumCapabilityChanged(value) {
@@ -147,13 +130,7 @@ class Roomba980Device extends Homey.Device {
         }
     }
 
-    onAdded() {
-        this.log('roomba980 added');
-    }
-
     onDeleted() {
-        this.log('roomba980 deleted');
-
         clearInterval(this.reconnectInterval);
 
         this.disconnectFromRobot();
