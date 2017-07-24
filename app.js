@@ -4,7 +4,7 @@ const Homey = require('homey');
 
 class Roomba980 extends Homey.App {
     onInit() {
-        let startVacuumAction = new Homey.FlowCardAction('start_vacuum');
+        /*let startVacuumAction = new Homey.FlowCardAction('start_vacuum');
 
         startVacuumAction
             .register()
@@ -44,7 +44,7 @@ class Roomba980 extends Homey.App {
                     .catch((e) => {
                         callback(e);
                     });
-            });
+            });*/
     }
 }
 

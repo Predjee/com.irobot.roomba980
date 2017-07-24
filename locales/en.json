@@ -4,5 +4,10 @@
             "title": "Pair your Roomba",
             "press_home": "Place your Roomba in its dock. Then, press the Home button until your Roomba starts making a series of sounds."
         }
+    },
+    "error": {
+        "offline": "Your Roomba went offline. Trying to reconnect...",
+        "in_use": "Someone or something else is connected to your Roomba right now. Please disconnect from the Roomba and then try again.",
+        "spot_cleaning": "Spot cleaning is only possible by pressing the button on your Roomba."
     }
 }

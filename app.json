@@ -10,52 +10,6 @@
         "name": "Athom B.V.",
         "email": "info@athom.com"
     },
-    "flow": {
-        "actions": [
-            {
-                "id": "start_vacuum",
-                "title": {
-                    "en": "Start vacuuming",
-                    "nl": "Begin met stofzuigen"
-                },
-                "args": [
-                    {
-                        "name": "device",
-                        "type": "device",
-                        "filter": "driver_id=roomba980"
-                    }
-                ]
-            },
-            {
-                "id": "stop_vacuum",
-                "title": {
-                    "en": "Stop vacuuming",
-                    "nl": "Stop met stofzuigen"
-                },
-                "args": [
-                    {
-                        "name": "device",
-                        "type": "device",
-                        "filter": "driver_id=roomba980"
-                    }
-                ]
-            },
-            {
-                "id": "dock",
-                "title": {
-                    "en": "Go to dock",
-                    "nl": "Ga naar de basis"
-                },
-                "args": [
-                    {
-                        "name": "device",
-                        "type": "device",
-                        "filter": "driver_id=roomba980"
-                    }
-                ]
-            }
-        ]
-    },
     "drivers": [
         {
             "id": "roomba980",

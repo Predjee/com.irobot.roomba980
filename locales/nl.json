@@ -4,5 +4,10 @@
             "title": "Koppel je Roomba",
             "press_home": "Plaats je Roomba in zijn laadstation. Druk dan op de Home-knop, totdat de Roomba een serie geluidjes maakt."
         }
+    },
+    "error": {
+        "offline": "Je Roomba is offline. Ik probeer opnieuw te verbinden...",
+        "nl": "Iets of iemand is met de Roomba verbonden. Verbreek de verbinding met de Roomba op je telefoon.",
+        "spot_cleaning": "Eén plek stofzuigen is alleen mogelijk door op de knop van je Roomba te drukken."
     }
 }

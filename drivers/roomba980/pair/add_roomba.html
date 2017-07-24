@@ -28,6 +28,15 @@
                     Homey.done();
                 });
             }
+
+            if (result.status === 'in_use') {
+                // Temporarily display the warning. It doesn't stop the pairing
+                // progress, but asks the user to disconnect while the Homey
+                // tries to connect.
+                document.getElementById('warning').style.display = 'block';
+            } else {
+                document.getElementById('warning').style.display = 'none';
+            }
         })
     }
 
@@ -39,4 +48,6 @@
 
 <center>
     <p data-i18n="pair.add.press_home"></p>
+    <p id="warning" data-i18n="error.in_use" style="display: none"></p>
+    <img src="pair_roomba.svg">
 </center>
