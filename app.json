@@ -15,6 +15,14 @@
         "name": "Athom B.V.",
         "email": "info@athom.com"
     },
+    "description": {
+	    "en": "iRobot Roomba 980 support for Homey",
+	    "en": "iRobot Roomba 980 ondersteuning voor Homey"
+    },
+    "images": {
+	    "large": "/assets/images/large.jpg",
+	    "small": "/assets/images/small.jpg"
+    },
     "drivers": [
         {
             "id": "roomba980",
@@ -26,6 +34,10 @@
                 "vacuumcleaner_state",
                 "measure_battery"
             ],
+		    "images": {
+			    "large": "/drivers/roomba980/assets/images/large.jpg",
+			    "small": "/drivers/roomba980/assets/images/small.jpg"
+		    },
             "pair": [
                 {
                     "id": "list_devices",
