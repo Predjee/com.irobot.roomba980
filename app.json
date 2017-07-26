@@ -38,10 +38,7 @@
                     }
                 },
                 {
-                    "id": "add_roomba",
-                    "navigation": {
-                        "next": "done"
-                    }
+                    "id": "add_roomba"
                 }
             ]
         }

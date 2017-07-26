@@ -1,3 +1,40 @@
+<style type="text/css">
+.instructions {
+	height: 100%;
+	
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	
+	text-align: center;
+}
+	.instructions img {
+		flex-grow: 1;
+		margin-bottom: 1em;
+		margin: 2em;
+	}
+	.instructions p {
+		flex-shrink: 0;
+		display: none;
+	}
+	
+	.instructions.inuse img,
+	.instructions.inuse p.instruction,
+	.instructions:not(.inuse) p.warning {
+		display: none;
+	}
+	.instructions.inuse p.warning,
+	.instructions:not(.inuse) p.instruction {
+		display: block;
+	}
+</style>
+
+<div class="instructions">
+    <img src="pair_roomba.svg">
+    <p class="instruction" data-i18n="pair.add.press_home"></p>
+    <p class="warning" data-i18n="error.in_use"></p>
+</div>
+
 <script>
     Homey.setTitle(__('pair.add.title'));
 
@@ -29,15 +66,21 @@
                     Homey.done();
                 });
             }
+            
+            document.querySelector('.instructions').classList.toggle('inuse', result.status === 'in_use');
+            /*
 
             if (result.status === 'in_use') {
                 // Temporarily display the warning. It doesn't stop the pairing
                 // progress, but asks the user to disconnect while the Homey
                 // tries to connect.
-                document.getElementById('warning').style.display = 'block';
+                warningEl.style.display = 'block';
+                instructionEl.style.display = 'none';
             } else {
-                document.getElementById('warning').style.display = 'none';
+                warningEl.style.display = 'none';
+                instructionEl.style.display = 'block';
             }
+            */
         })
     }
 
@@ -46,9 +89,3 @@
     // Maybe they've already pressed the button.
     check();
 </script>
-
-<center>
-    <p data-i18n="pair.add.press_home"></p>
-    <p id="warning" data-i18n="error.in_use" style="display: none"></p>
-    <img src="pair_roomba.svg">
-</center>
