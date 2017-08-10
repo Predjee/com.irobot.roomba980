@@ -64,11 +64,15 @@ class Roomba980Device extends Homey.Device {
                 this.robot.on('connect', () => {
                     this.connected = true;
 
+                    this.log(`Connected to ${robot.ip}.`);
+
                     this.setAvailable();
                 });
 
                 this.robot.on('close', () => {
                     this.connected = false;
+
+                    this.log('Lost connection with ${robot.ip}: close.');
 
                     this.disconnectFromRobot();
 
@@ -78,39 +82,50 @@ class Roomba980Device extends Homey.Device {
                 this.robot.on('offline', () => {
                     this.connected = false;
 
+                    this.log('Lost connection with ${robot.ip}: offline.');
+
                     this.disconnectFromRobot();
 
                     this.setUnavailable(Homey.__('error.offline'));
                 });
 
                 this.robot.on('state', (e) => {
-                    this.setCapabilityValue('measure_battery', e.batPct);
+                    if (typeof e.batPct !== 'undefined') {
+                        this.setCapabilityValue('measure_battery', e.batPct)
+                            .catch(this.error.bind('measure_battery', e.batPct));
+                    }
 
                     let cycle = e.cleanMissionStatus.cycle,
                         phase = e.cleanMissionStatus.phase;
 
                     if (cycle === 'none' && phase === 'charge') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'charging');
+                        this.setCapabilityValue('vacuumcleaner_state', 'charging')
+                            .catch(this.error.bind('vacuumcleaner_state charging'));
                     }
 
                     if (cycle === 'none' && phase === 'stop') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'stopped');
+                        this.setCapabilityValue('vacuumcleaner_state', 'stopped')
+                            .catch(this.error.bind('vacuumcleaner_state stopped'));
                     }
 
                     if (cycle === 'dock' && phase === 'hmUsrDock') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'docked');
+                        this.setCapabilityValue('vacuumcleaner_state', 'docked')
+                            .catch(this.error.bind('vacuumcleaner_state docked'));
                     }
 
                     if (cycle === 'quick' && phase === 'stop') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'stopped');
+                        this.setCapabilityValue('vacuumcleaner_state', 'stopped')
+                            .catch(this.error.bind('vacuumcleaner_state stopped'));
                     }
 
                     if (cycle === 'quick' && phase === 'run') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'cleaning');
+                        this.setCapabilityValue('vacuumcleaner_state', 'cleaning')
+                            .catch(this.error.bind('vacuumcleaner_state cleaning'));
                     }
 
                     if (cycle === 'spot' && phase === 'run') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning');
+                        this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning')
+                            .catch(this.error.bind('vacuumcleaner_state spot_cleaning'));
                     }
                 });
             });
