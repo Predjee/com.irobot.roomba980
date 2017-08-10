@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 
-const dorita980 = require('dorita980');
+const Roomba = require('./roomba');
 
 const RoombaFinder = require('./finder');
 
@@ -22,6 +22,10 @@ class Roomba980Device extends Homey.Device {
 
         this.findRobot();
 
+        this._reconnect();
+    }
+
+    _reconnect() {
         this.reconnectInterval = setInterval(() => {
             if (!this.connected) {
                 this.log('Connection was lost, finding new robots.');
@@ -53,22 +57,12 @@ class Roomba980Device extends Homey.Device {
                     return;
                 }
 
-                try {
-                    this.robot = new dorita980.Local(this.data.auth.username, this.data.auth.password, robot.ip);
-                } catch (e) {
-                    this.log(`Could not connect to ${robot.ip}: ${e}`);
+                this.robot = new Roomba(this.data.auth.username, this.data.auth.password, robot.ip);
 
-                    this.setUnavailable();
-
-                    this.connected = false;
-
-                    delete this.robot;
-
-                    return;
-                }
-
-                this.robot.on('connect', () => {
+                this.robot.on('connected', () => {
                     this.connected = true;
+
+                    clearInterval(this.reconnectInterval);
 
                     this.log(`Connected to ${robot.ip}.`);
 
@@ -81,6 +75,8 @@ class Roomba980Device extends Homey.Device {
                     this.log(`Lost connection with ${robot.ip}: offline.`);
 
                     this.disconnectFromRobot();
+
+                    this._reconnect();
 
                     this.setUnavailable(Homey.__('error.offline'));
                 });
@@ -157,9 +153,11 @@ class Roomba980Device extends Homey.Device {
     disconnectFromRobot() {
         this.log('Disconnecting from robot...');
 
-        this.robot.removeAllListeners();
+        if (this.robot) {
+            this.robot.removeAllListeners();
 
-        this.robot.end(true);
+            this.robot.end();
+        }
     }
 }
 
