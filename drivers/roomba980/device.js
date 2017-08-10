@@ -95,8 +95,13 @@ class Roomba980Device extends Homey.Device {
                         phase = e.cleanMissionStatus.phase;
 
                     if (cycle === 'none' && phase === 'charge') {
-                        this.setCapabilityValue('vacuumcleaner_state', 'charging')
-                            .catch(this.error.bind('vacuumcleaner_state charging'));
+                        if (typeof e.batPct !== 'undefined' && e.batPct < 100) {
+                            this.setCapabilityValue('vacuumcleaner_state', 'charging')
+                                .catch(this.error.bind('vacuumcleaner_state charging'));
+                        } else {
+                            this.setCapabilityValue('vacuumcleaner_state', 'docked')
+                                .catch(this.error.bind('vacuumcleaner_state docked'));
+                        }
                     }
 
                     if (cycle === 'none' && phase === 'stop') {
