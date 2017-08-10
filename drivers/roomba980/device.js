@@ -24,6 +24,8 @@ class Roomba980Device extends Homey.Device {
 
         this.reconnectInterval = setInterval(() => {
             if (!this.connected) {
+                this.log('Connection was lost, finding new robots.');
+
                 this.findRobot();
             }
         }, 15000);
@@ -45,6 +47,8 @@ class Roomba980Device extends Homey.Device {
 
         this.finder.findRoomba()
             .then((robot) => {
+                this.log(`Found a Roomba: ${robot.ip}.`);
+
                 if (robot.mac !== this.data.mac) {
                     return;
                 }
@@ -52,6 +56,8 @@ class Roomba980Device extends Homey.Device {
                 try {
                     this.robot = new dorita980.Local(this.data.auth.username, this.data.auth.password, robot.ip);
                 } catch (e) {
+                    this.log(`Could not connect to ${robot.ip}: ${e}`);
+
                     this.setUnavailable();
 
                     this.connected = false;
@@ -69,24 +75,18 @@ class Roomba980Device extends Homey.Device {
                     this.setAvailable();
                 });
 
-                this.robot.on('close', () => {
+                this.robot.on('offline', () => {
                     this.connected = false;
 
-                    this.log('Lost connection with ${robot.ip}: close.');
+                    this.log(`Lost connection with ${robot.ip}: offline.`);
 
                     this.disconnectFromRobot();
 
                     this.setUnavailable(Homey.__('error.offline'));
                 });
 
-                this.robot.on('offline', () => {
-                    this.connected = false;
-
-                    this.log('Lost connection with ${robot.ip}: offline.');
-
-                    this.disconnectFromRobot();
-
-                    this.setUnavailable(Homey.__('error.offline'));
+                this.robot.on('error', e => {
+                    this.error(`Error in Roomba connection: ${e}`);
                 });
 
                 this.robot.on('state', (e) => {
@@ -128,6 +128,9 @@ class Roomba980Device extends Homey.Device {
                             .catch(this.error.bind('vacuumcleaner_state spot_cleaning'));
                     }
                 });
+            })
+            .catch(e => {
+                this.error(e);
             });
     }
 
@@ -152,10 +155,11 @@ class Roomba980Device extends Homey.Device {
     }
 
     disconnectFromRobot() {
-        this.robot.end(true, () => {
-            this.robot.removeAllListeners();
-            delete this.robot;
-        });
+        this.log('Disconnecting from robot...');
+
+        this.robot.removeAllListeners();
+
+        this.robot.end(true);
     }
 }
 
