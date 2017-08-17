@@ -63,7 +63,9 @@ class RoombaFinder extends Homey.SimpleClass {
 
                                     roombas.push(parsed);
 
-                                    callback(parsed);
+                                    if (callback) {
+                                        callback(parsed);
+                                    }
                                 })
                                 .catch(this.error.bind(this, 'findRoomba -> getMAC'));
                         }
