@@ -105,25 +105,22 @@ class Roomba980Driver extends Homey.Driver {
 
         socket.on('list_devices', (data, callback) => {
             this.finder.findRoomba()
-                .then((data) => {
-                    // The dorita980 lib only gives back one device.
-                    let devices = [
-                        {
-                            name: data.robotname,
+                .then((devices) => {
+                    callback(null, devices.map(device => {
+                        return {
+                            name: device.robotname,
                             data: {
-                                mac: data.mac,
-                                ip: data.ip,
-                                name: data.robotname,
+                                mac: device.mac,
+                                ip: device.ip,
+                                name: device.robotname,
                                 auth: {
-                                    username: data.blid,
+                                    username: device.blid,
                                     // The password is later discovered in add_roomba.
                                     password: null
                                 }
                             }
-                        }
-                    ];
-
-                    callback(null, devices);
+                        };
+                    }));
                 })
                 .catch((err) => {
                     callback(err);
