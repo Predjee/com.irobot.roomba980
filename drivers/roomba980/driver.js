@@ -104,29 +104,38 @@ class Roomba980Driver extends Homey.Driver {
         });
 
         socket.on('list_devices', (data, callback) => {
-            this.finder.findRoomba()
+            const devices = [];
+
+            socket.emit('list_devices', []);
+            this.finder.findRoomba(roomba => {
+                devices.push(this._roombaToDevice(roomba));
+
+                socket.emit('list_devices', devices);
+            })
                 .then((devices) => {
-                    callback(null, devices.map(device => {
-                        return {
-                            name: device.robotname,
-                            data: {
-                                mac: device.mac,
-                                ip: device.ip,
-                                name: device.robotname,
-                                auth: {
-                                    username: device.blid,
-                                    // The password is later discovered in add_roomba.
-                                    password: null
-                                }
-                            }
-                        };
-                    }));
+                    callback(null, devices.map(roomba => this._roombaToDevice(roomba)));
                 })
                 .catch((err) => {
                     callback(err);
                     return;
                 });
         });
+    }
+
+    _roombaToDevice(device) {
+        return {
+            name: device.robotname,
+            data: {
+                mac: device.mac,
+                ip: device.ip,
+                name: device.robotname,
+                auth: {
+                    username: device.blid,
+                    // The password is later discovered in add_roomba.
+                    password: null
+                }
+            }
+        };
     }
 }
 

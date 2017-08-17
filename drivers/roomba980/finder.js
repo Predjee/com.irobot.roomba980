@@ -10,7 +10,7 @@ const Homey = require('homey');
 class RoombaFinder extends Homey.SimpleClass {
     constructor() {
         super();
-        
+
         this.listenServer = null;
         this.listening = false;
     }
@@ -18,9 +18,10 @@ class RoombaFinder extends Homey.SimpleClass {
     /**
      * Find any Roomba 980.
      *
+     * @param {function} callback - Callback to call when a single robot is found.
      * @return {Promise} Promise which resolves with data about Roombas.
      */
-    async findRoomba() {
+    async findRoomba(callback) {
         return new Promise((resolve, reject) => {
             const roombas = [];
 
@@ -61,6 +62,8 @@ class RoombaFinder extends Homey.SimpleClass {
                                     parsed.mac = mac;
 
                                     roombas.push(parsed);
+
+                                    callback(parsed);
                                 })
                                 .catch(this.error.bind(this, 'findRoomba -> getMAC'));
                         }
