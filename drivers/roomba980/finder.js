@@ -26,7 +26,10 @@ class RoombaFinder extends Homey.SimpleClass {
             const roombas = [];
 
             const nextStep = () => {
-                this.listenServer = dgram.createSocket('udp4');
+                this.listenServer = dgram.createSocket({
+                    type: 'udp4',
+                    reuseAddr: true
+                });
 
                 const timeout = setTimeout(() => {
                     this.listenServer.close(() => {
