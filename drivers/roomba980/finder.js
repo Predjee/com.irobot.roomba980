@@ -79,7 +79,7 @@ class RoombaFinder extends Homey.SimpleClass {
                 });
 
                 this.listenServer.bind(5678, () => {
-                    this.listeningg = true;
+                    this.listening = true;
 
                     const message = new Buffer('irobotmcs');
 
