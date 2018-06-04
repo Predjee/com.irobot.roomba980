@@ -15,4 +15,5 @@ What does not work:
 
 ## Version history
 
+ * 1.0.1: Added support for multiple Roombas, fixed some bugs.
  * 1.0.0: Initial release
