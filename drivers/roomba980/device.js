@@ -84,46 +84,33 @@ class Roomba980Device extends Homey.Device {
                 this.error(`Error in Roomba connection: ${e}`);
             });
 
-            this.robot.on('state', (e) => {
-                if (typeof e.batPct !== 'undefined') {
-                    this.setCapabilityValue('measure_battery', e.batPct)
-                        .catch(this.error.bind('measure_battery', e.batPct));
+            this.robot.on('state', (state) => {
+                if (typeof state.batPct !== 'undefined') {
+                    this.setCapabilityValue('measure_battery', state.batPct)
+                        .catch(this.error.bind('measure_battery', state.batPct));
                 }
 
-                let cycle = e.cleanMissionStatus.cycle,
-                    phase = e.cleanMissionStatus.phase;
+                let cycle = state.cleanMissionStatus.cycle,
+                    phase = state.cleanMissionStatus.phase;
 
                 if (cycle === 'none' && phase === 'charge') {
-                    if (typeof e.batPct !== 'undefined' && e.batPct < 100) {
+                    if (typeof state.batPct !== 'undefined' && state.batPct < 100) {
                         this.setCapabilityValue('vacuumcleaner_state', 'charging')
                             .catch(this.error.bind('vacuumcleaner_state charging'));
                     } else {
                         this.setCapabilityValue('vacuumcleaner_state', 'docked')
                             .catch(this.error.bind('vacuumcleaner_state docked'));
                     }
-                }
-
-                if (cycle === 'none' && phase === 'stop') {
+                } else if (cycle === ('none' || 'quick') && phase === 'stop') {
                     this.setCapabilityValue('vacuumcleaner_state', 'stopped')
                         .catch(this.error.bind('vacuumcleaner_state stopped'));
-                }
-
-                if (cycle === 'dock' && phase === 'hmUsrDock') {
+                } else if (cycle === 'dock' && phase === 'hmUsrDock') {
                     this.setCapabilityValue('vacuumcleaner_state', 'docked')
                         .catch(this.error.bind('vacuumcleaner_state docked'));
-                }
-
-                if (cycle === 'quick' && phase === 'stop') {
-                    this.setCapabilityValue('vacuumcleaner_state', 'stopped')
-                        .catch(this.error.bind('vacuumcleaner_state stopped'));
-                }
-
-                if (cycle === 'quick' && phase === 'run') {
+                } else if (cycle === 'quick' && phase === 'run') {
                     this.setCapabilityValue('vacuumcleaner_state', 'cleaning')
                         .catch(this.error.bind('vacuumcleaner_state cleaning'));
-                }
-
-                if (cycle === 'spot' && phase === 'run') {
+                } else if (cycle === 'spot' && phase === 'run') {
                     this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning')
                         .catch(this.error.bind('vacuumcleaner_state spot_cleaning'));
                 }

@@ -26,7 +26,10 @@ class RoombaFinder extends Homey.SimpleClass {
             const roombas = [];
 
             const nextStep = () => {
-                this.listenServer = dgram.createSocket('udp4');
+                this.listenServer = dgram.createSocket({
+                    type: 'udp4',
+                    reuseAddr: true
+                });
 
                 const timeout = setTimeout(() => {
                     this.listenServer.close(() => {
@@ -79,7 +82,7 @@ class RoombaFinder extends Homey.SimpleClass {
                 });
 
                 this.listenServer.bind(5678, () => {
-                    this.listeningg = true;
+                    this.listening = true;
 
                     const message = new Buffer('irobotmcs');
 
