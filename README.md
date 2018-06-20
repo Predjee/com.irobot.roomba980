@@ -1,6 +1,8 @@
-# Roomba 980
+# Roomba
 
-This app adds support for the Roomba 980 vacuum cleaner to Homey.
+This app adds support for the Roomba vacuum cleaners to Homey.
+
+While the only officially supported device is the Roomba 980, the app seems to work with quite a lot of other Roomba vacuum cleaners.
 
 What works:
 

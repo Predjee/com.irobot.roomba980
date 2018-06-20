@@ -4,13 +4,9 @@ const Homey = require('homey');
 
 const tls = require('tls');
 
-const RoombaFinder = require('./finder');
+const finder = require('./finder');
 
 class Roomba980Driver extends Homey.Driver {
-    onInit() {
-        this.finder = new RoombaFinder();
-    }
-
     /**
      * Get the password of a Roomba.
      * @param  {string}  ip IP address of the Roomba.
@@ -104,21 +100,7 @@ class Roomba980Driver extends Homey.Driver {
         });
 
         socket.on('list_devices', (data, callback) => {
-            const devices = [];
-
-            socket.emit('list_devices', []);
-            this.finder.findRoomba(roomba => {
-                devices.push(this._roombaToDevice(roomba));
-
-                socket.emit('list_devices', devices);
-            })
-                .then((devices) => {
-                    callback(null, devices.map(roomba => this._roombaToDevice(roomba)));
-                })
-                .catch((err) => {
-                    callback(err);
-                    return;
-                });
+            callback(null, finder.getRoombas().map((roomba) => this._roombaToDevice(roomba)));
         });
     }
 
