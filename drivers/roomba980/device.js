@@ -4,7 +4,7 @@ const Homey = require('homey');
 
 const Roomba = require('./roomba');
 
-const RoombaFinder = require('./finder');
+const finder = require('./finder');
 
 class Roomba980Device extends Homey.Device {
     onInit() {
@@ -13,8 +13,6 @@ class Roomba980Device extends Homey.Device {
         this.connected = false;
 
         this.robot = null;
-
-        this.finder = new RoombaFinder();
 
         this.setUnavailable(Homey.__('error.offline'));
 
@@ -49,7 +47,7 @@ class Roomba980Device extends Homey.Device {
 
         this.setUnavailable(Homey.__('error.offline'));
 
-        this.finder.roombas.forEach((robot) => {
+        finder.roombas.forEach((robot) => {
             this.log(`Found a Roomba: ${robot.ip}.`);
 
             if (robot.mac !== this.data.mac) {
