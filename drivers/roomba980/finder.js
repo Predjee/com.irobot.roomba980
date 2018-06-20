@@ -13,94 +13,107 @@ class RoombaFinder extends Homey.SimpleClass {
 
         this.listenServer = null;
         this.listening = false;
+
+        this.roombas = [];
+
+        this.broadcastInterval = setInterval(this.sendBroadcast.bind(this), 60000); // Every minute.
+
+        this.refreshInterval = setInterval(() => {
+            const twoMinutesAgo = new Date().getTime() - 120000;
+
+            this.roombas = this.roombas.filter((roomba) => roomba.lastSeen < twoMinutesAgo);
+        }, 60000); // Filter away unseen Roombas every minute, if they weren't seen for two minutes.
+
+        this.startListening();
     }
 
-    /**
-     * Find any Roomba 980.
-     *
-     * @param {function} callback - Callback to call when a single robot is found.
-     * @return {Promise} Promise which resolves with data about Roombas.
-     */
-    async findRoomba(callback) {
+    startListening() {
         return new Promise((resolve, reject) => {
-            const roombas = [];
-
-            const nextStep = () => {
-                this.listenServer = dgram.createSocket({
-                    type: 'udp4',
-                    reuseAddr: true
-                });
-
-                const timeout = setTimeout(() => {
-                    this.listenServer.close(() => {
-                        this.listening = false;
-
-                        resolve(roombas);
-                    });
-                }, 10000);
-
-                this.listenServer.on('error', (err) => {
-                    this.listenServer.close();
-                    this.listening = false;
-
-                    reject(err);
-                });
-
-                this.listenServer.on('message', (msg) => {
-                    try {
-                        let parsed = JSON.parse(msg);
-
-                        if (parsed.hostname && parsed.ip && parsed.hostname.split('-')[0] === 'Roomba') {
-                            this.listenServer.close();
-                            this.listening = false;
-
-                            clearTimeout(timeout);
-
-                            // The username is part of the hostname.
-                            // Roomba-xyz --> username is xyz.
-                            parsed.blid = parsed.hostname.split('-')[1];
-
-                            Homey.ManagerArp.getMAC(parsed.ip)
-                                .then((mac) => {
-                                    parsed.mac = mac;
-
-                                    roombas.push(parsed);
-
-                                    if (callback) {
-                                        callback(parsed);
-                                    }
-                                })
-                                .catch(this.error.bind(this, 'findRoomba -> getMAC'));
-                        }
-                    } catch (e) {
-                        // Message is invalid, probably some other happy service
-                        // trying to reply to your query.
-                        //
-                        // We could log this, but that would mean spamming the
-                        // console.
-                    }
-                });
-
-                this.listenServer.bind(5678, () => {
-                    this.listening = true;
-
-                    const message = new Buffer('irobotmcs');
-
-                    this.listenServer.setBroadcast(true);
-
-                    this.listenServer.send(message, 0, message.length, 5678, '255.255.255.255');
-                });
-            };
-
             if (this.listening) {
-                this.listenServer.close(nextStep);
-
-                this.listening = false;
-            } else {
-                nextStep();
+                return resolve();
             }
+
+            this.listenServer = dgram.createSocket({
+                type: 'udp4',
+                reuseAddr: true
+            });
+
+            this.listenServer.on('error', (error) => {
+                this.listenServer.close(() => {
+                    this.listening = false;
+                    this.startListening();
+                });
+            });
+
+            this.listenServer.on('message', this.onMessage.bind(this));
+
+            this.listenServer.bind(5678, () => {
+                this.listening = true;
+            });
         });
+    }
+
+    sendBroadcast() {
+        if (!this.listening) {
+            return;
+        }
+
+        const message = new Buffer('irobotmcs');
+
+        this.listenServer.setBroadcast(true);
+
+        this.listenServer.send(message, 0, message.length, 5678, '255.255.255.255');
+    }
+
+    async onMessage(message) {
+        const roomba = await this.parseMessage(message);
+
+        if (roomba === null) {
+            // No Roomba was found.
+            return;
+        }
+
+        if (this.roombas.find((r) => r.mac === roomba.mac)) {
+            this.roombas = this.roombas.filter((r) => {
+                if (r.mac === roomba.mac) {
+                    r.lastSeen = new Date().getTime();
+                }
+            });
+
+            return;
+        }
+
+        this.roombas.push({
+            ...roomba,
+            lastSeen: new Date().getTime()
+        });
+    }
+
+    async parseMessage(message) {
+        try {
+            const parsed = JSON.parse(message);
+            const {ip, hostname} = parsed;
+
+            if (hostname.split('-')[0] !== 'Roomba') {
+                return null;
+            }
+
+            const blid = hostname.split('-')[1];
+
+            const mac = await Homey.ManagerArp.getMAC(ip);
+
+            return {
+                ...parsed,
+                mac
+            };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    getRoombas() {
+        return this.roombas;
     }
 }
 
-module.exports = RoombaFinder;
+module.exports = new RoombaFinder();
