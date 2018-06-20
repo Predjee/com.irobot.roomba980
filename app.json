@@ -1,11 +1,11 @@
 {
     "id": "com.irobot.roomba980",
     "name": {
-        "en": "Roomba 980"
+        "en": "Roomba"
     },
     "tags": {
-        "en": [ "roomba 980", "vacuum cleaner", "vacuum", "irobot" ],
-        "nl": [ "roomba 980", "stofzuiger", "irobot" ]
+        "en": [ "roomba", "vacuum cleaner", "vacuum", "irobot" ],
+        "nl": [ "roomba", "stofzuiger", "irobot" ]
     },
     "category": "appliances",
     "sdk": 2,
@@ -16,8 +16,8 @@
         "email": "info@athom.com"
     },
     "description": {
-	    "en": "iRobot Roomba 980 support for Homey",
-	    "en": "iRobot Roomba 980 ondersteuning voor Homey"
+	    "en": "iRobot Roomba support for Homey",
+	    "en": "iRobot Roomba ondersteuning voor Homey"
     },
     "images": {
 	    "large": "/assets/images/large.jpg",
@@ -27,7 +27,7 @@
         {
             "id": "roomba980",
             "name": {
-                "en": "Roomba 980"
+                "en": "Roomba"
             },
             "class": "vacuumcleaner",
             "capabilities": [
