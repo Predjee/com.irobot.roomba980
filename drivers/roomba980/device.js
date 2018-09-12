@@ -99,7 +99,7 @@ class Roomba980Device extends Homey.Device {
                         this.setCapabilityValue('vacuumcleaner_state', 'docked')
                             .catch(this.error.bind(this, 'vacuumcleaner_state docked'));
                     }
-                } else if (cycle === 'none' || cycle === 'quick') && phase === 'stop') {
+                } else if ((cycle === 'none' || cycle === 'quick') && phase === 'stop') {
                     this.setCapabilityValue('vacuumcleaner_state', 'stopped')
                         .catch(this.error.bind(this, 'vacuumcleaner_state stopped'));
                 } else if (cycle === 'dock' && phase === 'hmUsrDock') {
