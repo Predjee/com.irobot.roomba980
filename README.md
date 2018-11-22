@@ -16,6 +16,6 @@ What does not work:
    There is no known possibility of remotely starting Spot Cleaning.
 
 ## Version history
-
+ * 1.0.4: Updated compatibility value to ensure compatibility with future Homey updates
  * 1.0.1: Added support for multiple Roombas, fixed some bugs.
  * 1.0.0: Initial release
