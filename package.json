@@ -1,0 +1,22 @@
+{
+  "name": "com.irobot.roomba980",
+  "version": "1.0.0",
+  "description": "This app adds support for the Roomba vacuum cleaners to Homey.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/athombv/com.irobot.roomba980.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/athombv/com.irobot.roomba980/issues"
+  },
+  "homepage": "https://github.com/athombv/com.irobot.roomba980#readme",
+  "dependencies": {
+    "async-mqtt": "^2.0.0"
+  }
+}

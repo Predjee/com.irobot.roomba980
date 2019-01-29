@@ -1,9 +1,7 @@
 'use strict';
 
 const Homey = require('homey');
-
 const tls = require('tls');
-
 const finder = require('./finder');
 
 class Roomba980Driver extends Homey.Driver {
@@ -23,50 +21,40 @@ class Roomba980Driver extends Homey.Driver {
 
             let timeout = setTimeout(() => {
                 client.end();
-                reject(new Error('Roomba took too long to respond!'));
             }, 5000);
 
             client.once('secureConnect', () => {
-                client.write(new Buffer('f005efcc3b2900', 'hex'));
+                client.write(Buffer.from('f005efcc3b2900', 'hex'));
             });
 
             client.on('error', (e) => {
                 if (e.code === 'ECONNREFUSED') {
                     // Someone else is already connected.
-                    client.end();
                     reject(e);
+
                     clearTimeout(timeout);
-                    return;
+                    client.end();
                 }
             });
 
-            let sliceFrom = 13;
+            let sliceIndex = 13;
 
             client.on('data', (data) => {
                 if (data.length === 2) {
-                    // The Roomba somehow indicates that it's going to send the
-                    // data differently. We prepare by adjusting sliceFrom
-                    // accordingly.
-                    sliceFrom = 9;
-                    return;
-                }
+                    // Different data format, adjust slice index
+                    sliceIndex = 9;
+                } else if (data.length > 7) {
+                    found = true;
 
-                if (data.length <= 7) {
-                    // Other data which we do not need.
-                } else {
                     clearTimeout(timeout);
                     client.end();
-                    found = true;
-                    resolve(new Buffer(data).slice(sliceFrom).toString());
-                }
 
-                client.end();
+                    resolve(Buffer.from(data).slice(sliceIndex).toString());
+                }
             });
 
             client.on('end', () => {
-                if (!found) {
-                    reject(new Error('Roomba took too long to respond!'));
-                }
+                if (!found) reject(new Error('Roomba didn\'t respond'));
             });
 
             client.setEncoding('utf-8');
@@ -74,6 +62,10 @@ class Roomba980Driver extends Homey.Driver {
     }
 
     onPair(socket) {
+        socket.on('list_devices', (data, callback) => {
+            callback(null, finder.roombas.map(roomba => this._roombaToDevice(roomba)));
+        });
+
         socket.on('check', (data, callback) => {
             this.getPassword(data.ip)
                 .then((password) => {
@@ -88,19 +80,13 @@ class Roomba980Driver extends Homey.Driver {
                             status: 'in_use',
                             data: null
                         });
-
-                        return;
+                    } else {
+                        callback(null, {
+                            status: 'failure',
+                            data: null
+                        });
                     }
-
-                    callback(null, {
-                        status: 'failure',
-                        data: null
-                    });
                 });
-        });
-
-        socket.on('list_devices', (data, callback) => {
-            callback(null, finder.getRoombas().map((roomba) => this._roombaToDevice(roomba)));
         });
     }
 
@@ -112,7 +98,7 @@ class Roomba980Driver extends Homey.Driver {
                 ip: device.ip,
                 name: device.robotname,
                 auth: {
-                    username: device.blid,
+                    username: device.username,
                     // The password is later discovered in add_roomba.
                     password: null
                 }
