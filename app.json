@@ -9,7 +9,7 @@
     },
     "category": "appliances",
     "sdk": 2,
-    "version": "1.0.4",
+    "version": "2.0.1",
     "compatibility": ">= 1.5.0",
     "author": {
         "name": "Athom B.V.",
@@ -17,7 +17,7 @@
     },
     "description": {
 	    "en": "iRobot Roomba support for Homey",
-	    "en": "iRobot Roomba ondersteuning voor Homey"
+	    "nl": "iRobot Roomba ondersteuning voor Homey"
     },
     "images": {
 	    "large": "/assets/images/large.jpg",

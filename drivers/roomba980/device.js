@@ -1,36 +1,13 @@
 'use strict';
 
 const Homey = require('homey');
-
 const Roomba = require('./roomba');
-
 const finder = require('./finder');
 
 class Roomba980Device extends Homey.Device {
     onInit() {
-        this.data = this.getData();
-
-        this.connected = false;
-
-        this.robot = null;
-
-        this.setUnavailable(Homey.__('error.offline'));
-
-        this.registerCapabilityListener('vacuumcleaner_state', this.onVacuumCapabilityChanged.bind(this));
-
-        this.findRobot();
-
-        this._reconnect();
-    }
-
-    _reconnect() {
-        this.reconnectInterval = setInterval(() => {
-            if (!this.connected) {
-                this.log('Connection was lost, finding new robots.');
-
-                this.findRobot();
-            }
-        }, 15000);
+        this._onOffline();
+        this.registerCapabilityListener('vacuumcleaner_state', this._onVacuumCapabilityChanged.bind(this));
     }
 
     /**
@@ -41,82 +18,61 @@ class Roomba980Device extends Homey.Device {
      * connect to it.
      */
     findRobot() {
-        this.connected = false;
-
         delete this.robot;
-
         this.setUnavailable(Homey.__('error.offline'));
 
-        finder.roombas.forEach((robot) => {
-            this.log(`Found a Roomba: ${robot.ip}.`);
+        let data = this.getData();
+        finder.roombas.forEach((roomba) => {
+            if (roomba.mac !== data.mac) return;
 
-            if (robot.mac !== this.data.mac) {
-                return;
-            }
+            this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
-            this.robot = new Roomba(this.data.auth.username, this.data.auth.password, robot.ip);
-
-            this.robot.on('connected', () => {
-                this.connected = true;
-
-                clearInterval(this.reconnectInterval);
-
-                this.log(`Connected to ${robot.ip}.`);
-
-                this.setAvailable();
-            });
-
-            this.robot.on('offline', () => {
-                this.connected = false;
-
-                this.log(`Lost connection with ${robot.ip}: offline.`);
-
-                this.disconnectFromRobot();
-
-                this._reconnect();
-
-                this.setUnavailable(Homey.__('error.offline'));
-            });
-
-            this.robot.on('error', e => {
-                this.error(`Error in Roomba connection: ${e}`);
-            });
-
-            this.robot.on('state', (state) => {
-                if (typeof state.batPct !== 'undefined') {
-                    this.setCapabilityValue('measure_battery', state.batPct)
-                        .catch(this.error.bind('measure_battery', state.batPct));
-                }
-
-                let cycle = state.cleanMissionStatus.cycle,
-                    phase = state.cleanMissionStatus.phase;
-
-                if (cycle === 'none' && phase === 'charge') {
-                    if (typeof state.batPct !== 'undefined' && state.batPct < 100) {
-                        this.setCapabilityValue('vacuumcleaner_state', 'charging')
-                            .catch(this.error.bind(this, 'vacuumcleaner_state charging'));
-                    } else {
-                        this.setCapabilityValue('vacuumcleaner_state', 'docked')
-                            .catch(this.error.bind(this, 'vacuumcleaner_state docked'));
-                    }
-                } else if ((cycle === 'none' || cycle === 'quick') && phase === 'stop') {
-                    this.setCapabilityValue('vacuumcleaner_state', 'stopped')
-                        .catch(this.error.bind(this, 'vacuumcleaner_state stopped'));
-                } else if (cycle === 'dock' && phase === 'hmUsrDock') {
-                    this.setCapabilityValue('vacuumcleaner_state', 'docked')
-                        .catch(this.error.bind(this, 'vacuumcleaner_state docked'));
-                } else if (cycle === 'quick' && phase === 'run') {
-                    this.setCapabilityValue('vacuumcleaner_state', 'cleaning')
-                        .catch(this.error.bind(this, 'vacuumcleaner_state cleaning'));
-                } else if (cycle === 'spot' && phase === 'run') {
-                    this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning')
-                        .catch(this.error.bind(this, 'vacuumcleaner_state spot_cleaning'));
-                }
-            });
+            this.robot.on('connected', this._onConnected.bind(this));
+            this.robot.on('offline', this._onOffline.bind(this));
+            this.robot.on('error', this._onError.bind(this));
+            this.robot.on('state', this._onState.bind(this));
         });
     }
 
-    onVacuumCapabilityChanged(value) {
+    _onConnected() {
+        clearInterval(this.reconnectInterval);
+        this.setAvailable();
+    }
+
+    _onOffline() {
+        this._disconnectFromRobot();
+        this.findRobot();
+
+        this.reconnectInterval = setInterval( () => {
+            this.findRobot();
+        }, 10000);
+    }
+
+    _onError(error) {
+        this.error(`Error in Roomba connection: ${error}`);
+    }
+
+    _onState(state) {
+        if (typeof state.batPct === 'number') this.setCapabilityValue('measure_battery', state.batPct);
+
+        if (state && state.cleanMissionStatus
+            && state.cleanMissionStatus.cycle
+            && state.cleanMissionStatus.phase) {
+            let cycle = state.cleanMissionStatus.cycle,
+                phase = state.cleanMissionStatus.phase;
+
+            if (cycle === 'none'
+                && phase === 'charge') {
+                if (this.getCapabilityValue('measure_battery') === 100) this.setCapabilityValue('vacuumcleaner_state', 'docked');
+                else this.setCapabilityValue('vacuumcleaner_state', 'charging');
+            } else if (phase === 'stop') this.setCapabilityValue('vacuumcleaner_state', 'stopped');
+            else if (cycle === 'dock' && phase === 'hmUsrDock') this.setCapabilityValue('vacuumcleaner_state', 'docked');
+            else if (cycle === 'quick' && phase === 'run') this.setCapabilityValue('vacuumcleaner_state', 'cleaning');
+            else if (cycle === 'spot' && phase === 'run') this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning');
+        }
+    }
+
+    _onVacuumCapabilityChanged(value) {
         switch (value) {
         case 'cleaning':
             return this.robot.start();
@@ -132,16 +88,12 @@ class Roomba980Device extends Homey.Device {
 
     onDeleted() {
         clearInterval(this.reconnectInterval);
-
-        this.disconnectFromRobot();
+        this._disconnectFromRobot();
     }
 
-    disconnectFromRobot() {
-        this.log('Disconnecting from robot...');
-
+    _disconnectFromRobot() {
         if (this.robot) {
             this.robot.removeAllListeners();
-
             this.robot.end();
         }
     }

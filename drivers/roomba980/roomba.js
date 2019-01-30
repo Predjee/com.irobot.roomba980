@@ -1,8 +1,9 @@
 'use strict';
 
 const EventEmitter = require('events').EventEmitter;
-const mqtt = require('mqtt');
+const mqtt = require('async-mqtt');
 
+const THREE_SECONDS = 3 * 1000;
 /**
  * Interface to a Roomba 980.
  * @class Roomba
@@ -20,59 +21,54 @@ class Roomba extends EventEmitter {
     constructor(username, password, host) {
         super();
 
-        this._client = mqtt.connect(`tls://${host}`, {
-            port: 8883,
-            clientId: username,
-            rejectUnauthorized: false,
-            protocolId: 'MQTT',
-            protocolVersion: 4,
-            clean: false,
-            username: username,
-            password: password
-        });
+        try {
+            this._client = mqtt.connect(`tls://${host}`, {
+                port: 8883,
+                clientId: username,
+                rejectUnauthorized: false,
+                protocolId: 'MQTT',
+                protocolVersion: 4,
+                clean: false,
+                username: username,
+                password: password
+            });
 
-        // We don't need reconnecting.
-        this._client._clearReconnect();
+            this._client.on('error', e => {
+                this.emit('error', e);
+            });
 
-        this._client._reconnect = () => {};
+            this._client.on('connect', () => {
+                this.emit('connected');
+            });
 
-        this._state = {};
+            this._client.on('offline', () => {
+                this.emit('offline');
+            });
 
-        this._client.on('error', e => {
-            this.emit('error', e);
-        });
+            this._client.on('packetreceive', packet => {
+                if (!packet.payload) return;
 
-        this._client.on('connect', () => {
-            this.emit('connected');
-        });
+                try {
+                    const msg = JSON.parse(packet.payload.toString());
 
-        this._client.on('offline', () => {
-            this.emit('offline');
-        });
-
-        this._client.on('packetreceive', packet => {
-            if (!packet.payload) {
-                return;
-            }
-
-            try {
-                const msg = JSON.parse(packet.payload.toString());
-
-                this._state = Object.assign(this._state, msg.state.reported);
-
-                this.emit('state', this._state);
-            } catch (e) {
-                // Probably a message we don't understand, so we skip it.
-            }
-        });
-    }
-
-    /**
-     * The current roomba state.
-     * @memberof Roomba#
-     */
-    get state() {
-        return this._state;
+                    /*
+                    Debounced because sometimes Roombas send a lot of messages in quick succession.
+                    The state is kept up to date but only relayed after 3 seconds of radio silence.
+                     */
+                    if (msg && msg.state && msg.state.reported) {
+                        clearTimeout(this.stateEmitDebounce);
+                        this._state = Object.assign(this._state || {}, msg.state.reported);
+                        this.stateEmitDebounce = setTimeout(() => {
+                            this.emit('state', this._state);
+                        }, THREE_SECONDS);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     /**
@@ -83,27 +79,19 @@ class Roomba extends EventEmitter {
      * or rejecting when it failed.
      */
     async _call(topic, command) {
-        return new Promise((resolve, reject) => {
-            let cmd = {
-                command,
-                time: Date.now() / 1000 | 0,
-                initiator: 'localApp'
+        let cmd = {
+            command,
+            time: Date.now() / 1000 | 0,
+            initiator: 'localApp'
+        };
+
+        if (topic === 'delta') {
+            cmd = {
+                state: command
             };
+        }
 
-            if (topic === 'delta') {
-                cmd = {
-                    state: command
-                };
-            }
-
-            this._client.publish(topic, JSON.stringify(cmd), e => {
-                if (e) {
-                    return reject(e);
-                }
-
-                resolve();
-            });
-        });
+        return this._client.publish(topic, JSON.stringify(cmd));
     }
 
     /**
@@ -167,25 +155,11 @@ class Roomba extends EventEmitter {
      * @memberof Roomba#
      */
     end() {
-        const forceDisconnectTimeout = setTimeout(() => {
-            console.log('Forcing a disconnect.');
+        this._client.end(() => {
             if (this._client.stream) {
-                console.log('.stream exists; we\'re destroying it.');
-
                 this._client.stream.removeAllListeners();
-
                 this._client.stream.end();
             }
-        }, 2000);
-
-        this._client.end(() => {
-            console.log('end() callback; we\'re done here.');
-
-            this._client.stream.removeAllListeners();
-
-            this._client.stream.end();
-
-            clearTimeout(forceDisconnectTimeout);
         });
 
         this._client.removeAllListeners();

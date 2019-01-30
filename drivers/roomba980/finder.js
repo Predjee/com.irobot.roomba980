@@ -1,119 +1,92 @@
 'use strict';
 
 const dgram = require('dgram');
+const EventEmitter = require('events');
 
-const Homey = require('homey');
+const MESSAGE = Buffer.from('irobotmcs');
+const THIRTY_SECONDS = 30 * 1000;
 
 /**
  * This class attempts to find new Roombas on the network.
  */
-class RoombaFinder extends Homey.SimpleClass {
-    constructor() {
-        super();
+class Finder extends EventEmitter {
+    constructor(props) {
+        super(props);
 
-        this.listenServer = null;
-        this.listening = false;
-
-        this.roombas = [];
-
-        this.broadcastInterval = setInterval(this.sendBroadcast.bind(this), 60000); // Every minute.
-
-        this.refreshInterval = setInterval(() => {
-            const twoMinutesAgo = new Date().getTime() - 120000;
-
-            this.roombas = this.roombas.filter((roomba) => roomba.lastSeen < twoMinutesAgo);
-        }, 60000); // Filter away unseen Roombas every minute, if they weren't seen for two minutes.
-
-        this.startListening();
+        this._roombas = {};
+        this.start();
     }
 
-    startListening() {
-        return new Promise((resolve, reject) => {
-            if (this.listening) {
-                return resolve();
-            }
+    start() {
+        this._listen();
 
-            this.listenServer = dgram.createSocket({
-                type: 'udp4',
-                reuseAddr: true
-            });
-
-            this.listenServer.on('error', (error) => {
-                this.listenServer.close(() => {
-                    this.listening = false;
-                    this.startListening();
-                });
-            });
-
-            this.listenServer.on('message', this.onMessage.bind(this));
-
-            this.listenServer.bind(5678, () => {
-                this.listening = true;
-            });
+        // When listening has started broadcast and broadcast every 30 seconds afterwards
+        this.server.on('listening', () => {
+            this._broadcast();
+            this.broadcastInterval = setInterval(this._broadcast.bind(this), THIRTY_SECONDS);
         });
     }
 
-    sendBroadcast() {
-        if (!this.listening) {
-            return;
-        }
+    _restart(reason) {
+        if (reason) console.error(reason);
+        clearInterval(this.broadcastInterval);
+        this.server.close();
 
-        const message = new Buffer('irobotmcs');
-
-        this.listenServer.setBroadcast(true);
-
-        this.listenServer.send(message, 0, message.length, 5678, '255.255.255.255');
+        this.start();
     }
 
-    async onMessage(message) {
-        const roomba = await this.parseMessage(message);
+    _listen() {
+       this.server = dgram.createSocket({
+           type: 'udp4',
+           reuseAddr: true
+       });
 
-        if (roomba === null) {
-            // No Roomba was found.
-            return;
-        }
-
-        if (this.roombas.find((r) => r.mac === roomba.mac)) {
-            this.roombas = this.roombas.filter((r) => {
-                if (r.mac === roomba.mac) {
-                    r.lastSeen = new Date().getTime();
-                }
-            });
-
-            return;
-        }
-
-        this.roombas.push({
-            ...roomba,
-            lastSeen: new Date().getTime()
-        });
+       this.server.on('error', this._restart.bind(this));
+       this.server.on('message', this._onMessage.bind(this));
+       this.server.bind(5678);
     }
 
-    async parseMessage(message) {
+    _broadcast() {
+        /*
+        Broadcast the message to the entire internal network, regardless of subnet.
+        Be wary, the Roomba responds with a broadcast within its own subnet, so you do
+        have to be in the same subnet to get a result.
+        */
+        this.server.setBroadcast(true);
+        this.server.send(MESSAGE, 0, MESSAGE.length, 5678, '255.255.255.255');
+    }
+
+    _onMessage(message) {
+        const parsed = this._parseMessage(message);
+        if (!parsed) return;
+        this._roombas[parsed.robotname] = parsed;
+    }
+
+    _parseMessage(message) {
+        // Ignore the return of our own message from the router
+        if (message.toString() === 'irobotmcs') return;
+
         try {
             const parsed = JSON.parse(message);
-            const {ip, hostname} = parsed;
+            const {hostname} = parsed;
+            const splitHostname = hostname.split('-');
 
-            if (hostname.split('-')[0] !== 'Roomba') {
-                return null;
-            }
-
-            const blid = hostname.split('-')[1];
-
-            const mac = await Homey.ManagerArp.getMAC(ip);
+            // First part indicates whether this is a Roomba, second part is the username
+            if (splitHostname[0] !== 'Roomba') return;
+            const username = splitHostname[1];
 
             return {
                 ...parsed,
-                mac
-            };
+                username
+            }
         } catch (e) {
-            return null;
+            console.error(e);
         }
     }
 
-    getRoombas() {
-        return this.roombas;
+    get roombas() {
+        return Object.values(this._roombas);
     }
 }
 
-module.exports = new RoombaFinder();
+module.exports = new Finder();
