@@ -3,6 +3,7 @@
 const EventEmitter = require('events').EventEmitter;
 const mqtt = require('async-mqtt');
 
+const THREE_SECONDS = 3 * 1000;
 /**
  * Interface to a Roomba 980.
  * @class Roomba
@@ -49,8 +50,14 @@ class Roomba extends EventEmitter {
 
                 try {
                     const msg = JSON.parse(packet.payload.toString());
-                    this._state = Object.assign(this._state || {}, msg.state.reported);
-                    this.emit('state', this._state);
+
+                    if (msg && msg.state && msg.state.reported) {
+                        clearTimeout(this.stateEmitDebounce);
+                        this._state = Object.assign(this._state || {}, msg.state.reported);
+                        this.stateEmitDebounce = setTimeout(() => {
+                            this.emit('state', this._state);
+                        }, THREE_SECONDS);
+                    }
                 } catch (e) {
                     console.error(e);
                 }
