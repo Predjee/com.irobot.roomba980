@@ -23,6 +23,10 @@ class Roomba980Driver extends Homey.Driver {
                 client.end();
             }, 5000);
 
+            /*
+            This hex code results in the Roomba relaying its password back to us.
+            Legacy was undocumented so we're not sure why it's this string specifically.
+             */
             client.once('secureConnect', () => {
                 client.write(Buffer.from('f005efcc3b2900', 'hex'));
             });
@@ -40,10 +44,19 @@ class Roomba980Driver extends Homey.Driver {
             let sliceIndex = 13;
 
             client.on('data', (data) => {
+                /*
+                 UDP package of size 2 indicates a different data format for the password
+                 so we adjust the slicing index
+                 */
                 if (data.length === 2) {
-                    // Different data format, adjust slice index
                     sliceIndex = 9;
-                } else if (data.length > 7) {
+                }
+                /*
+                 UDP packages of length 7 and higher indicate the password has been sent to
+                 us. Parse the password by creating a buffer and slicing it at the determined
+                 slicing index. Turn the result into a string.
+                 */
+                else if (data.length > 7) {
                     found = true;
 
                     clearTimeout(timeout);

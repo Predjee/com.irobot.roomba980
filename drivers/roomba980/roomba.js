@@ -51,6 +51,10 @@ class Roomba extends EventEmitter {
                 try {
                     const msg = JSON.parse(packet.payload.toString());
 
+                    /*
+                    Debounced because sometimes Roombas send a lot of messages in quick succession.
+                    The state is kept up to date but only relayed after 3 seconds of radio silence.
+                     */
                     if (msg && msg.state && msg.state.reported) {
                         clearTimeout(this.stateEmitDebounce);
                         this._state = Object.assign(this._state || {}, msg.state.reported);

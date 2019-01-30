@@ -19,9 +19,10 @@ class Finder extends EventEmitter {
 
     start() {
         this._listen();
+
+        // When listening has started broadcast and broadcast every 30 seconds afterwards
         this.server.on('listening', () => {
             this._broadcast();
-
             this.broadcastInterval = setInterval(this._broadcast.bind(this), THIRTY_SECONDS);
         });
     }
@@ -46,6 +47,11 @@ class Finder extends EventEmitter {
     }
 
     _broadcast() {
+        /*
+        Broadcast the message to the entire internal network, regardless of subnet.
+        Be wary, the Roomba responds with a broadcast within its own subnet, so you do
+        have to be in the same subnet to get a result.
+        */
         this.server.setBroadcast(true);
         this.server.send(MESSAGE, 0, MESSAGE.length, 5678, '255.255.255.255');
     }
@@ -57,6 +63,7 @@ class Finder extends EventEmitter {
     }
 
     _parseMessage(message) {
+        // Ignore the return of our own message from the router
         if (message.toString() === 'irobotmcs') return;
 
         try {
@@ -64,8 +71,8 @@ class Finder extends EventEmitter {
             const {hostname} = parsed;
             const splitHostname = hostname.split('-');
 
+            // First part indicates whether this is a Roomba, second part is the username
             if (splitHostname[0] !== 'Roomba') return;
-
             const username = splitHostname[1];
 
             return {
