@@ -154,15 +154,19 @@ class Roomba extends EventEmitter {
      * @method end
      * @memberof Roomba#
      */
-    end() {
-        this._client.end(() => {
+    async end() {
+        try {
+            await this._client.end();
+
             if (this._client.stream) {
                 this._client.stream.removeAllListeners();
                 this._client.stream.end();
             }
-        });
 
-        this._client.removeAllListeners();
+            this._client.removeAllListeners();
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 

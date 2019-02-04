@@ -4,7 +4,7 @@ const dgram = require('dgram');
 const EventEmitter = require('events');
 
 const MESSAGE = Buffer.from('irobotmcs');
-const THIRTY_SECONDS = 30 * 1000;
+const TEN_SECONDS = 10 * 1000;
 
 /**
  * This class attempts to find new Roombas on the network.
@@ -23,7 +23,7 @@ class Finder extends EventEmitter {
         // When listening has started broadcast and broadcast every 30 seconds afterwards
         this.server.on('listening', () => {
             this._broadcast();
-            this.broadcastInterval = setInterval(this._broadcast.bind(this), THIRTY_SECONDS);
+            this.broadcastInterval = setInterval(this._broadcast.bind(this), TEN_SECONDS);
         });
     }
 
@@ -59,7 +59,9 @@ class Finder extends EventEmitter {
     _onMessage(message) {
         const parsed = this._parseMessage(message);
         if (!parsed) return;
-        this._roombas[parsed.robotname] = parsed;
+
+        this._roombas[parsed.mac] = parsed;
+        this.emit(`roomba:${parsed.mac}`, parsed);
     }
 
     _parseMessage(message) {

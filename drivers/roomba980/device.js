@@ -6,7 +6,7 @@ const finder = require('./finder');
 
 class Roomba980Device extends Homey.Device {
     onInit() {
-        this._onOffline();
+        this.connect();
         this.registerCapabilityListener('vacuumcleaner_state', this._onVacuumCapabilityChanged.bind(this));
     }
 
@@ -17,14 +17,11 @@ class Roomba980Device extends Homey.Device {
      * their MAC addresses. If it is the one we want (stored in device data), we
      * connect to it.
      */
-    findRobot() {
-        delete this.robot;
+    connect() {
         this.setUnavailable(Homey.__('error.offline'));
+        const data = this.getData();
 
-        let data = this.getData();
-        finder.roombas.forEach((roomba) => {
-            if (roomba.mac !== data.mac) return;
-
+        finder.once(`roomba:${data.mac}`, (roomba) => {
             this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
             this.robot.on('connected', this._onConnected.bind(this));
@@ -35,17 +32,12 @@ class Roomba980Device extends Homey.Device {
     }
 
     _onConnected() {
-        clearInterval(this.reconnectInterval);
         this.setAvailable();
     }
 
-    _onOffline() {
-        this._disconnectFromRobot();
-        this.findRobot();
-
-        this.reconnectInterval = setInterval( () => {
-            this.findRobot();
-        }, 10000);
+    async _onOffline() {
+        await this._disconnectFromRobot();
+        this.connect();
     }
 
     _onError(error) {
@@ -86,15 +78,14 @@ class Roomba980Device extends Homey.Device {
         }
     }
 
-    onDeleted() {
-        clearInterval(this.reconnectInterval);
-        this._disconnectFromRobot();
+    async onDeleted() {
+        await this._disconnectFromRobot();
     }
 
-    _disconnectFromRobot() {
+    async _disconnectFromRobot() {
         if (this.robot) {
             this.robot.removeAllListeners();
-            this.robot.end();
+            await this.robot.end();
         }
     }
 }
