@@ -26,7 +26,7 @@ class Roomba980Device extends Homey.Device {
 
         finder.roombas.forEach((roomba) => {
             this.log('found a Roomba: '+ roomba.mac);
-            if (roomba.mac !== data.mac) return;
+            if (roomba.mac.toLowerCase() !== data.mac.toLowerCase()) return;
 
             this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
