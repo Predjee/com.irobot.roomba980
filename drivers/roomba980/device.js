@@ -22,7 +22,7 @@ class Roomba980Device extends Homey.Device {
         const data = this.getData();
         this.log('looking for Roomba: '+ data.mac);
 
-        finder.once(`roomba:${data.mac}`, (roomba) => {
+        finder.once(`roomba:${data.mac.toLowerCase()}`, (roomba) => {
             this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
             this.robot.on('connected', this._onConnected.bind(this));

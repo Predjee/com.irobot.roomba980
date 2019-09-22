@@ -63,7 +63,7 @@ class Finder extends EventEmitter {
 
         console.log('found a Roomba: '+ parsed.mac);
         this._roombas[parsed.mac] = parsed;
-        this.emit(`roomba:${parsed.mac}`, parsed);
+        this.emit(`roomba:${parsed.mac.toLowerCase()}`, parsed);
     }
 
     _parseMessage(message) {
