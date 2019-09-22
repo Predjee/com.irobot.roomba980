@@ -1,6 +1,7 @@
 'use strict';
 
 const dgram = require('dgram');
+const Homey = require('homey');
 const EventEmitter = require('events');
 
 const MESSAGE = Buffer.from('irobotmcs');
@@ -60,6 +61,7 @@ class Finder extends EventEmitter {
         const parsed = this._parseMessage(message);
         if (!parsed) return;
 
+        console.log('found a Roomba: '+ parsed.mac);
         this._roombas[parsed.mac] = parsed;
         this.emit(`roomba:${parsed.mac}`, parsed);
     }

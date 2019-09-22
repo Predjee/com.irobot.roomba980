@@ -23,7 +23,6 @@ class Roomba980Device extends Homey.Device {
         this.log('looking for Roomba: '+ data.mac);
 
         finder.once(`roomba:${data.mac}`, (roomba) => {
-            this.log('found a Roomba: '+ roomba.mac);
             this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
             this.robot.on('connected', this._onConnected.bind(this));
@@ -31,7 +30,7 @@ class Roomba980Device extends Homey.Device {
             this.robot.on('error', this._onError.bind(this));
             this.robot.on('state', this._onState.bind(this));
 
-            this.log('created Roomba obj');
+            this.log('created Roomba obj for: ' + roomba.mac);
         });
     }
 
