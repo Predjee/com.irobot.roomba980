@@ -6,7 +6,7 @@
         }
     },
     "error": {
-        "offline": "Your Roomba went offline. Trying to reconnect...",
+        "offline": "Your Roomba is offline. Attempting to connect.",
         "in_use": "Someone or something else is connected to your Roomba right now.<br/>Please disconnect from the Roomba and then try again.",
         "spot_cleaning": "Spot cleaning is only possible by pressing the button on your Roomba."
     }

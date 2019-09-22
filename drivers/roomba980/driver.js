@@ -111,7 +111,7 @@ class Roomba980Driver extends Homey.Driver {
                 ip: device.ip,
                 name: device.robotname,
                 auth: {
-                    username: device.username || device.blid,
+                    username: device.username,
                     // The password is later discovered in add_roomba.
                     password: null
                 }

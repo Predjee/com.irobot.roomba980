@@ -6,7 +6,7 @@
         }
     },
     "error": {
-        "offline": "Je Roomba is offline. Ik probeer opnieuw te verbinden...",
+        "offline": "Je Roomba is offline. Opnieuw aan het verbinden.",
         "nl": "Iets of iemand is met de Roomba verbonden.<br />Verbreek de verbinding met de Roomba op je telefoon.",
         "spot_cleaning": "Eén plek stofzuigen is alleen mogelijk door op de knop van je Roomba te drukken."
     }
