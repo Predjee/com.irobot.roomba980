@@ -20,18 +20,22 @@ class Roomba980Device extends Homey.Device {
     connect() {
         this.setUnavailable(Homey.__('error.offline'));
         const data = this.getData();
+        this.log('looking for Roomba: '+ data.mac);
 
-        finder.once(`roomba:${data.mac}`, (roomba) => {
+        finder.once(`roomba:${data.mac.toLowerCase()}`, (roomba) => {
             this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
             this.robot.on('connected', this._onConnected.bind(this));
             this.robot.on('offline', this._onOffline.bind(this));
             this.robot.on('error', this._onError.bind(this));
             this.robot.on('state', this._onState.bind(this));
+
+            this.log('created Roomba obj for: ' + roomba.mac);
         });
     }
 
     _onConnected() {
+        clearInterval(this.reconnectInterval);
         this.setAvailable();
     }
 
