@@ -21,7 +21,7 @@ class Roomba980Device extends Homey.Device {
         this.setUnavailable(Homey.__('error.offline'));
         const data = this.getData();
         this.log('looking for Roomba: '+ data.mac);
-
+		if (!Object.prototype.hasOwnProperty.call(data, 'mac')) return this.error('missing mac property in data object');
         finder.once(`roomba:${data.mac.toLowerCase()}`, (roomba) => {
             this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
 
@@ -35,7 +35,6 @@ class Roomba980Device extends Homey.Device {
     }
 
     _onConnected() {
-        clearInterval(this.reconnectInterval);
         this.setAvailable();
     }
 

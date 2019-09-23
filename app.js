@@ -4,7 +4,7 @@ const Homey = require('homey');
 
 class Roomba980 extends Homey.App {
     onInit() {
-      this.log('onInit Roomba980 App');
+      this.log('onInit() Roomba980 App');
     }
 }
 

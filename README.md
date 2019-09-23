@@ -16,6 +16,7 @@ What does not work:
    There is no known possibility of remotely starting Spot Cleaning.
 
 ## Version history
+ * 2.0.3: Fixed a bug which could result in not discovering a Roomba 
  * 2.0.2: Fixed memory leak caused by reconnection logic
  * 2.0.1: Added debouncing logic to Roomba state reports, this should fix issues where the Roomba looped through all states in Homey.
  * 2.0.0: Restructure of the application, this should improve overall stability
