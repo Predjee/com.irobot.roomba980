@@ -1,14 +1,15 @@
 <style type="text/css">
 .instructions {
 	height: 100%;
-	
+
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	
+
 	text-align: center;
 }
 	.instructions img {
+        height: 65%;
 		flex-grow: 1;
 		margin-bottom: 1em;
 		margin: 2em;
@@ -17,7 +18,7 @@
 		flex-shrink: 0;
 		display: none;
 	}
-	
+
 	.instructions.inuse img,
 	.instructions.inuse p.instruction,
 	.instructions:not(.inuse) p.warning {
@@ -66,7 +67,7 @@
                     Homey.done();
                 });
             }
-            
+
             document.querySelector('.instructions').classList.toggle('inuse', result.status === 'in_use');
             /*
 
