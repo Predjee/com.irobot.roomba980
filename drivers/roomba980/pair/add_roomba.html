@@ -1,92 +1,71 @@
 <style type="text/css">
-.instructions {
-	height: 100%;
+  .instructions {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+  }
 
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
+  .roomba_pair_image {
+    height: 65%;
+    flex-grow: 1;
+    text-align: center;
+  }
 
-	text-align: center;
-}
-	.instructions img {
-        height: 65%;
-		flex-grow: 1;
-		margin-bottom: 1em;
-		margin: 2em;
-	}
-	.instructions p {
-		flex-shrink: 0;
-		display: none;
-	}
+  .instructions p {
+    flex-shrink: 0;
+  }
 
-	.instructions.inuse img,
-	.instructions.inuse p.instruction,
-	.instructions:not(.inuse) p.warning {
-		display: none;
-	}
-	.instructions.inuse p.warning,
-	.instructions:not(.inuse) p.instruction {
-		display: block;
-	}
+  .instructions .error {
+    display: none;
+  }
 </style>
 
 <div class="instructions">
-    <img src="pair_roomba.svg">
-    <p class="instruction" data-i18n="pair.add.press_home"></p>
-    <p class="warning" data-i18n="error.in_use"></p>
+  <img src="pair_roomba.svg" class="roomba_pair_image">
+  <p class="instruction" data-i18n="pair.add.press_home"></p>
+  <p class="error" data-i18n="error.in_use" id="in_use"></p>
+  <p class="error" data-i18n="error.unknown" id="unknown"></p>
+  <p class="error" data-i18n="error.add_device" id="add_device"></p>
+  <p class="error" data-i18n="error.password_timeout" id="password_timeout"></p>
 </div>
 
 <script>
-    Homey.setTitle(__('pair.add.title'));
+	Homey.setTitle(__('pair.add.title'));
 
-    var device = window.selected_devices[0];
+	var ERROR_IN_USE = 'in_use';
+	var ERROR_GET_PASSWORD_TIMEOUT = 'get_password_timeout';
 
-    device = JSON.parse(device);
+	function showErrorMessage(errorId, customMessage) {
+		document.getElementsByClassName('instruction')[0].style.display = "none";
+		document.getElementsByClassName('roomba_pair_image')[0].style.display = "none";
+		document.getElementById(errorId).style.display = "block";
+		if (typeof customMessage === 'string') document.getElementById(errorId).innerHTML = customMessage;
+		Homey.setNavigationClose()
+	}
 
-    var interval;
+	Homey.on('deviceAuthenticated', function (data, callback) {
+		if (callback) callback();
+		// Detect error message
+		if (Object.prototype.hasOwnProperty.call(data, 'message')) {
+			if (data.message === ERROR_IN_USE) {
+				// Device is already connected to something
+				return showErrorMessage('in_use');
+			}
+			if (data.message === ERROR_GET_PASSWORD_TIMEOUT) {
+				// Device did not respond with password
+				return showErrorMessage('password_timeout');
+			}
 
-    function check() {
-        Homey.emit('check', {
-            ip: device.ip
-        }, function (err, result) {
-            if (err) return console.error(err);
+			// Unknown error occurred
+			return showErrorMessage('unknown');
+		}
 
-            if (result.status === 'success') {
-                device.auth.password = result.data;
-
-                // We do not care about the IP address anymore.
-                delete device.ip;
-
-                Homey.addDevice({
-                    data: device,
-                    name: device.name
-                }, function (err, result) {
-                    if (err) return console.error(err);
-
-                    clearInterval(interval);
-                    Homey.done();
-                });
-            }
-
-            document.querySelector('.instructions').classList.toggle('inuse', result.status === 'in_use');
-            /*
-
-            if (result.status === 'in_use') {
-                // Temporarily display the warning. It doesn't stop the pairing
-                // progress, but asks the user to disconnect while the Homey
-                // tries to connect.
-                warningEl.style.display = 'block';
-                instructionEl.style.display = 'none';
-            } else {
-                warningEl.style.display = 'none';
-                instructionEl.style.display = 'block';
-            }
-            */
-        })
-    }
-
-    interval = setInterval(check, 10 * 1000);
-
-    // Maybe they've already pressed the button.
-    check();
+		// Success, add device.
+		Homey.createDevice(data, function (err) {
+			if (err) return showErrorMessage('add_device', Homey.__('error.create_device_unknown'));
+			return Homey.done();
+		});
+	});
 </script>

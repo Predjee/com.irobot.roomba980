@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/athombv/com.irobot.roomba980#readme",
   "dependencies": {
-    "async-mqtt": "^2.0.0"
-  }
+    "async-mqtt": "^2.4.2"
+  },
+  "engines": {
+    "node": "8.16.0"
+  },
+  "devDependencies": {}
 }

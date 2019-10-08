@@ -1,58 +1,67 @@
 {
-    "id": "com.irobot.roomba980",
-    "name": {
-        "en": "Roomba"
-    },
-    "tags": {
-        "en": [ "roomba", "vacuum cleaner", "vacuum", "irobot" ],
-        "nl": [ "roomba", "stofzuiger", "irobot" ]
-    },
-    "category": "appliances",
-    "sdk": 2,
-    "version": "2.0.3",
-    "compatibility": ">= 1.5.0",
-    "author": {
-        "name": "Athom B.V.",
-        "email": "info@athom.com"
-    },
-    "description": {
-	    "en": "iRobot Roomba support for Homey",
-	    "nl": "iRobot Roomba ondersteuning voor Homey"
-    },
-    "images": {
-	    "large": "/assets/images/large.jpg",
-	    "small": "/assets/images/small.jpg"
-    },
-    "drivers": [
-        {
-            "id": "roomba980",
-            "name": {
-                "en": "Roomba"
-            },
-            "class": "vacuumcleaner",
-            "capabilities": [
-                "vacuumcleaner_state",
-                "measure_battery"
-            ],
-		    "images": {
-			    "large": "/drivers/roomba980/assets/images/large.jpg",
-			    "small": "/drivers/roomba980/assets/images/small.jpg"
-		    },
-            "pair": [
-                {
-                    "id": "list_devices",
-                    "template": "list_devices",
-                    "navigation": {
-                        "next": "add_roomba"
-                    },
-                    "options": {
-                        "singular": true
-                    }
-                },
-                {
-                    "id": "add_roomba"
-                }
-            ]
-        }
+  "id": "com.irobot.roomba980",
+  "name": {
+    "en": "Roomba"
+  },
+  "tags": {
+    "en": [
+      "roomba",
+      "vacuum cleaner",
+      "vacuum",
+      "irobot"
+    ],
+    "nl": [
+      "roomba",
+      "stofzuiger",
+      "irobot"
     ]
+  },
+  "category": "appliances",
+  "sdk": 2,
+  "version": "2.0.4",
+  "compatibility": ">=1.5.0",
+  "author": {
+    "name": "Athom B.V.",
+    "email": "info@athom.com"
+  },
+  "description": {
+    "en": "iRobot Roomba support for Homey",
+    "nl": "iRobot Roomba ondersteuning voor Homey"
+  },
+  "images": {
+    "large": "/assets/images/large.jpg",
+    "small": "/assets/images/small.jpg"
+  },
+  "drivers": [
+    {
+      "id": "roomba980",
+      "name": {
+        "en": "Roomba"
+      },
+      "class": "vacuumcleaner",
+      "capabilities": [
+        "vacuumcleaner_state",
+        "measure_battery"
+      ],
+      "images": {
+        "large": "/drivers/roomba980/assets/images/large.jpg",
+        "small": "/drivers/roomba980/assets/images/small.jpg"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_roomba"
+          },
+          "options": {
+            "singular": true
+          }
+        },
+        {
+          "id": "add_roomba"
+        }
+      ]
+    }
+  ]
 }

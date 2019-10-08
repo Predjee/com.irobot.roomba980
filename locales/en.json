@@ -1,13 +1,18 @@
 {
-    "pair": {
-        "add": {
-            "title": "Pair your Roomba",
-            "press_home": "Place your Roomba in its dock. Then, press the Home button until your Roomba starts making a series of sounds. Connecting can take up to 10 seconds."
-        }
-    },
-    "error": {
-        "offline": "Your Roomba is offline. Attempting to connect.",
-        "in_use": "Someone or something else is connected to your Roomba right now.<br/>Please disconnect from the Roomba and then try again.",
-        "spot_cleaning": "Spot cleaning is only possible by pressing the button on your Roomba."
+  "pair": {
+    "add": {
+      "title": "Pair your Roomba",
+      "press_home": "1. Place your Roomba in the dock.<br><br>2. Press the Home button on your Roomba until it starts beeping.<br><br>Connecting can take up to 10 seconds."
     }
+  },
+  "error": {
+    "offline": "Roomba is offline",
+    "unknown": "Something went wrong, please try again.",
+    "duplicate_device": "This device is already added to Homey.",
+    "create_device_unknown": "Something went wrong, this device could not be added to Homey.",
+    "in_use": "Someone or something is currently connected to your Roomba. Please remove this connection and try again.",
+    "password_timeout": "Could not authenticate with this Roomba, please try again.",
+    "spot_cleaning": "Spot cleaning is only possible by pressing the button on your Roomba.",
+    "failed_state_change": "Something went wrong"
+  }
 }

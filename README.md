@@ -2,20 +2,23 @@
 
 This app adds support for the Roomba vacuum cleaners to Homey.
 
-While the only officially supported device is the Roomba 980, the app seems to work with quite a lot of other Roomba vacuum cleaners.
+While the only officially supported device is the Roomba 980, the app seems to work with quite a lot of other Roomba vacuumcleaners.
 
-What works:
+Supported functionality:
 
  * Starting or stopping the Roomba
  * Sending the Roomba to the dock
- * Checking on your Roomba's status in the mobile app or in the Devices overview
+ * Checking the battery status
+ * Checking the current cleaning activity
 
-What does not work:
+Unsupported functionality:
 
- * Spot cleaning: The Roomba only supports Spot Cleaning by pressing the button.
-   There is no known possibility of remotely starting Spot Cleaning.
+ * When controlling the Roomba via other devices than Homey, the changed state will not be send to Homey.
+ * Spot cleaning: the Roomba only supports Spot Cleaning by pressing the button.
+   It is not possible to remotely start Spot Cleaning.
 
 ## Version history
+ * 2.0.4: Updated code base
  * 2.0.3: Fixed a bug which could result in not discovering a Roomba 
  * 2.0.2: Fixed memory leak caused by reconnection logic
  * 2.0.1: Added debouncing logic to Roomba state reports, this should fix issues where the Roomba looped through all states in Homey.
