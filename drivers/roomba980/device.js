@@ -1,102 +1,252 @@
 'use strict';
 
 const Homey = require('homey');
-const Roomba = require('./roomba');
-const finder = require('./finder');
+const Roomba = require('../../lib/Roomba');
+
+const CLIENT_RESET_COUNTER = 30; // Broadcast is done every 10 seconds, 30 counter ~ 5 minutes
+const MEASURE_BATTERY_CAPABILITY = 'measure_battery';
+const VACUUMCLEANER_STATE_CAPABILITY = 'vacuumcleaner_state';
+const VACUUMCLEANER_STATE = {
+  STOPPED: 'stopped',
+  CLEANING: 'cleaning',
+  SPOT_CLEANING: 'spot_cleaning',
+  DOCKED: 'docked',
+  CHARGING: 'charging',
+};
 
 class Roomba980Device extends Homey.Device {
-    onInit() {
-        this._onOffline();
-        this.registerCapabilityListener('vacuumcleaner_state', this._onVacuumCapabilityChanged.bind(this));
+  async onInit() {
+    // Reset client every once in a while
+    this._clientResetCounter = 0;
+
+    // First migrate data properties to store
+    await this._migrateDataToStore();
+
+    // Keep track of connected state
+    this._connected = false;
+
+    // Create RoombaFinder and start listening for discovery events
+    this._roombaFinder = this.getDriver().roombaFinder;
+    this._roombaFinder.on(`roomba:${this.getData().mac.toLowerCase()}`, this._discoveredThisRoomba.bind(this));
+    this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
+  }
+
+  /**
+   * Method that tries to create a connection to a roomba using a given ip address.
+   * @returns {Promise<*>}
+   */
+  async connect() {
+    this.log('connect() -> connect');
+    this.setUnavailable(Homey.__('error.offline'));
+
+    // Destroy roombaApi if currently existing
+    if (this._roombaApi) {
+      await this._destroyRoombaApiInstance();
+      this.log('connect() -> destroyed left-over roombaApi');
     }
 
-    /**
-     * Attempts to find the Roomba and connect to it. Also adds event listeners.
-     *
-     * This method searches for any existing Roomba on the network and compares
-     * their MAC addresses. If it is the one we want (stored in device data), we
-     * connect to it.
-     */
-    findRobot() {
-        delete this.robot;
-        this.setUnavailable(Homey.__('error.offline'));
+    // Get device data
+    const data = this.getData();
+    if (!Object.prototype.hasOwnProperty.call(data, 'mac')) return this.error('missing mac property in data object');
 
-        let data = this.getData();
-        finder.roombas.forEach((roomba) => {
-            if (roomba.mac !== data.mac) return;
+    // Get store values
+    const store = this.getStore();
+    if (!Object.prototype.hasOwnProperty.call(store, 'ip')) return this.error('missing ip property in store object');
 
-            this.robot = new Roomba(data.auth.username, data.auth.password, roomba.ip);
+    this.log(`connect() -> connect to (mac: ${data.mac})`);
 
-            this.robot.on('connected', this._onConnected.bind(this));
-            this.robot.on('offline', this._onOffline.bind(this));
-            this.robot.on('error', this._onError.bind(this));
-            this.robot.on('state', this._onState.bind(this));
-        });
+    // Create roomba instance
+    this._roombaApi = new Roomba(store.auth.username, store.auth.password, store.ip);
+
+    // Bind roomba log methods
+    this._roombaApi.log = (...args) => this.log('[Roomba]', ...args);
+    this._roombaApi.error = (...args) => this.error('[Roomba]', ...args);
+
+    this.log(`connect() -> created new roomba instance (${store.auth.username}, ${store.auth.password}, ${store.ip}, ${data.mac})`);
+
+    // Bind roomba events
+    this._roombaApi.on('connected', this._onConnected.bind(this));
+    this._roombaApi.on('state', this._onState.bind(this));
+
+    try {
+      this._roombaApi.connect();
+    } catch (err) {
+      this.error('connect() -> error', err);
+      this._connected = false;
     }
 
-    _onConnected() {
-        clearInterval(this.reconnectInterval);
-        this.setAvailable();
+    this._connected = true;
+  }
+
+  /**
+   * Clean up after device instance.
+   * @returns {Promise<void>}
+   */
+  async onDeleted() {
+    await this._destroyRoombaApiInstance();
+
+    // Remove event listener on roomba finder
+    this._roombaFinder.removeListener(`roomba:${this.getData().mac.toLowerCase()}`, this._discoveredThisRoomba.bind(this));
+
+    // Remove reference to roomba finder
+    this._roombaFinder = null;
+  }
+
+  /**
+   * Event handler for state events from roomba.
+   * @param {Object} state
+   * @private
+   */
+  _onState(state) {
+    // Detect battery state change
+    if (typeof state.batPct === 'number') {
+      this.log('_onState() -> measure_battery received', state.batPct);
+      this.setCapabilityValue('measure_battery', state.batPct).catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
     }
 
-    _onOffline() {
-        this._disconnectFromRobot();
-        this.findRobot();
+    if (state && state.cleanMissionStatus
+      && state.cleanMissionStatus.cycle
+      && state.cleanMissionStatus.phase) {
+      const cycle = state.cleanMissionStatus.cycle;
+      const phase = state.cleanMissionStatus.phase;
 
-        this.reconnectInterval = setInterval( () => {
-            this.findRobot();
-        }, 10000);
-    }
+      this.log(`_onState() -> cycle: ${cycle}, phase: ${phase}`);
 
-    _onError(error) {
-        this.error(`Error in Roomba connection: ${error}`);
-    }
-
-    _onState(state) {
-        if (typeof state.batPct === 'number') this.setCapabilityValue('measure_battery', state.batPct);
-
-        if (state && state.cleanMissionStatus
-            && state.cleanMissionStatus.cycle
-            && state.cleanMissionStatus.phase) {
-            let cycle = state.cleanMissionStatus.cycle,
-                phase = state.cleanMissionStatus.phase;
-
-            if (cycle === 'none'
-                && phase === 'charge') {
-                if (this.getCapabilityValue('measure_battery') === 100) this.setCapabilityValue('vacuumcleaner_state', 'docked');
-                else this.setCapabilityValue('vacuumcleaner_state', 'charging');
-            } else if (phase === 'stop') this.setCapabilityValue('vacuumcleaner_state', 'stopped');
-            else if (cycle === 'dock' && phase === 'hmUsrDock') this.setCapabilityValue('vacuumcleaner_state', 'docked');
-            else if (cycle === 'quick' && phase === 'run') this.setCapabilityValue('vacuumcleaner_state', 'cleaning');
-            else if (cycle === 'spot' && phase === 'run') this.setCapabilityValue('vacuumcleaner_state', 'spot_cleaning');
+      if (cycle === 'none' && phase === 'charge') {
+        if (this.getCapabilityValue(MEASURE_BATTERY_CAPABILITY) === 100) {
+          this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, 'docked')
+            .catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
+        } else {
+          this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.CHARGING)
+            .catch(err => this.error('could not set capability value charging for vacuumcleaner_state', err));
         }
+      } else if (phase === 'stop') {
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.STOPPED)
+          .catch(err => this.error('could not set capability value stopped for vacuumcleaner_state', err));
+      } else if (cycle === 'dock' && phase === 'hmUsrDock') {
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.DOCKED)
+          .catch(err => this.error('could not set capability value docked for vacuumcleaner_state', err));
+      } else if (cycle === 'quick' && phase === 'run') {
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.CLEANING)
+          .catch(err => this.error('could not set capability value cleaning for vacuumcleaner_state', err));
+      } else if (cycle === 'spot' && phase === 'run') {
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.SPOT_CLEANING).catch(err => this.error('could not set capability value spot_cleaning for vacuumcleaner_state', err));
+      }
+    }
+  }
+
+  /**
+   * Capability value changed handler for vacuumcleaner_state.
+   * @param {string} value
+   * @returns {Promise<IPublishPacket>}
+   * @private
+   */
+  _onVacuumCapabilityChanged(value) {
+    // Check if API is initialized
+    if (!this._roombaApi) {
+      this.error('_onVacuumCapabilityChanged() -> error roombaApi not initialised');
+      return null;
     }
 
-    _onVacuumCapabilityChanged(value) {
-        switch (value) {
-        case 'cleaning':
-            return this.robot.start();
-        case 'spot_cleaning':
-            return Promise.reject(new Error(Homey.__('error.spot_cleaning')));
-        case 'docked':
-        case 'charging':
-            return this.robot.dock();
-        case 'stopped':
-            return this.robot.stop();
-        }
+    try {
+      // Determine desired action
+      switch (value) {
+        case VACUUMCLEANER_STATE.CLEANING:
+          return this._roombaApi.start();
+        case VACUUMCLEANER_STATE.SPOT_CLEANING:
+          return Promise.reject(new Error(Homey.__('error.spot_cleaning')));
+        case VACUUMCLEANER_STATE.DOCKED:
+          return this._roombaApi.dock();
+        case VACUUMCLEANER_STATE.CHARGING:
+          return this._roombaApi.dock();
+        case VACUUMCLEANER_STATE.STOPPED:
+          return this._roombaApi.stop();
+        default:
+          this.error('_onVacuumCapabilityChanged() -> received unknown value:', value);
+          return Promise.reject(new Error(Homey.__('error.failed_state_change')));
+      }
+    } catch (err) {
+      this.log('_onVacuumCapabilityChanged() -> error', err);
+      return Promise.reject(new Error(Homey.__('error.failed_state_change')));
+    }
+  }
+
+  /**
+   * This method is called every time the RoombaFinder detects the roomba on the network. In case the IP is changed it is
+   * updated and a reconnect will be performed on the new IP.
+   * @param {string} ip
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _discoveredThisRoomba({ ip }) {
+    this.log('_discoveredThisRoomba() -> ip', ip);
+
+    // Broadcast is done every 10 seconds, 30 counter ~ 5 minutes
+    this._clientResetCounter++;
+
+    const ipChanged = this._checkIpChanged(ip);
+    if (ipChanged) {
+      if (ip) await this.setStoreValue('ip', ip); // Update ip address
+      this.log(`_discoveredThisRoomba() -> ip changed to ${ip}`);
     }
 
-    onDeleted() {
-        clearInterval(this.reconnectInterval);
-        this._disconnectFromRobot();
+    if (!this._connected || ipChanged || this._clientResetCounter === CLIENT_RESET_COUNTER) {
+      // Connect to roomba (on possibly new ip address)
+      this.connect().catch(err => this.error('connect() -> unknown error', err));
     }
+  }
 
-    _disconnectFromRobot() {
-        if (this.robot) {
-            this.robot.removeAllListeners();
-            this.robot.end();
-        }
+  /**
+   * Method that checks if a given IP address is different from the currently known IP address of the roomba.
+   * @param {string} ip
+   * @returns {boolean}
+   * @private
+   */
+  _checkIpChanged(ip) {
+    if (typeof ip !== 'string') throw new Error('invalid_ip');
+    const currentIp = this.getStoreValue('ip');
+    return ip !== currentIp;
+  }
+
+  /**
+   * Connected to roomba client event. Mark device as available.
+   * @private
+   */
+  _onConnected() {
+    this.log('_onConnected()');
+    if (!this.getAvailable()) this.setAvailable().catch(err => this.error('could not set available', err));
+  }
+
+  /**
+   * Destroy roomba api instance.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _destroyRoombaApiInstance() {
+    this.log('_disconnectFromRobot()');
+    if (this._roombaApi) {
+      this._roombaApi.removeAllListeners();
+      await this._roombaApi.end();
     }
+    this._roombaApi = null; // important
+  }
+
+  /**
+   * Perform migration steps. Properties 'ip' and 'auth' are moved from data to store.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _migrateDataToStore() {
+    const data = this.getData();
+    const store = this.getStore();
+
+    if (Object.prototype.hasOwnProperty.call(data, 'ip') && !Object.prototype.hasOwnProperty.call(store, 'ip')) {
+      await this.setStoreValue('ip', data.ip).catch(err => this.error('_migrateDataToStore() -> failed to migrate ip', err));
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'auth') && !Object.prototype.hasOwnProperty.call(store, 'auth')) {
+      await this.setStoreValue('auth', data.auth).catch(err => this.error('_migrateDataToStore() -> failed to migrate auth', err));
+    }
+  }
 }
 
 module.exports = Roomba980Device;
