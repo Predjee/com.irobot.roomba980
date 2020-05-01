@@ -1,0 +1,71 @@
+<style type="text/css">
+  .instructions {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+  }
+
+  .roomba_pair_image {
+    height: 65%;
+    flex-grow: 1;
+    text-align: center;
+  }
+
+  .instructions p {
+    flex-shrink: 0;
+  }
+
+  .instructions .error {
+    display: none;
+  }
+</style>
+
+<div class="instructions">
+  <img src="pair_roomba.svg" class="roomba_pair_image">
+  <p class="instruction" data-i18n="pair.add.press_home"></p>
+  <p class="error" data-i18n="error.in_use" id="in_use"></p>
+  <p class="error" data-i18n="error.unknown" id="unknown"></p>
+  <p class="error" data-i18n="error.add_device" id="add_device"></p>
+  <p class="error" data-i18n="error.password_timeout" id="password_timeout"></p>
+</div>
+
+<script>
+	Homey.setTitle(__('pair.add.title'));
+
+	var ERROR_IN_USE = 'in_use';
+	var ERROR_GET_PASSWORD_TIMEOUT = 'get_password_timeout';
+
+	function showErrorMessage(errorId, customMessage) {
+		document.getElementsByClassName('instruction')[0].style.display = "none";
+		document.getElementsByClassName('roomba_pair_image')[0].style.display = "none";
+		document.getElementById(errorId).style.display = "block";
+		if (typeof customMessage === 'string') document.getElementById(errorId).innerHTML = customMessage;
+		Homey.setNavigationClose()
+	}
+
+	Homey.on('deviceAuthenticated', function (data, callback) {
+		if (callback) callback();
+		// Detect error message
+		if (Object.prototype.hasOwnProperty.call(data, 'message')) {
+			if (data.message === ERROR_IN_USE) {
+				// Device is already connected to something
+				return showErrorMessage('in_use');
+			}
+			if (data.message === ERROR_GET_PASSWORD_TIMEOUT) {
+				// Device did not respond with password
+				return showErrorMessage('password_timeout');
+			}
+
+			// Unknown error occurred
+			return showErrorMessage('unknown');
+		}
+
+		// Success, add device.
+		Homey.createDevice(data, function (err) {
+			if (err) return showErrorMessage('add_device', Homey.__('error.create_device_unknown'));
+			return Homey.done();
+		});
+	});
+</script>

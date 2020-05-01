@@ -32,6 +32,48 @@
     "large": "/assets/images/large.jpg",
     "small": "/assets/images/small.jpg"
   },
+  "capabilities": {
+    "mob_state": {
+      "type": "enum",
+      "title": {
+        "en": "Mob State"
+      },
+      "getable": true,
+      "setable": true,
+      "values": [
+        {
+          "id": "stopped",
+          "title": {
+            "en": "Stopped"
+          }
+        },
+        {
+          "id": "cleaning",
+          "title": {
+            "en": "Cleaning"
+          }
+        },
+        {
+          "id": "docked",
+          "title": {
+            "en": "Docked"
+          }
+        },
+        {
+          "id": "charging",
+          "title": {
+            "en": "Charging"
+          }
+        },
+        {
+          "id": "tank_status",
+          "title": {
+            "en": "Tank status"
+          }
+        }
+      ]
+    }
+  },
   "drivers": [
     {
       "id": "roomba980",
@@ -60,6 +102,36 @@
         },
         {
           "id": "add_roomba"
+        }
+      ]
+    },
+    {
+      "id": "braavam6",
+      "name": {
+        "en": "Braava M6"
+      },
+      "class": "vacuumcleaner",
+      "capabilities": [
+        "mob_state",
+        "measure_battery"
+      ],
+      "images": {
+        "large": "/drivers/braavam6/assets/images/large.jpg",
+        "small": "/drivers/braavam6/assets/images/small.jpg"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_braava"
+          },
+          "options": {
+            "singular": true
+          }
+        },
+        {
+          "id": "add_braava"
         }
       ]
     }
