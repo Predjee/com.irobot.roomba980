@@ -1,20 +1,20 @@
 'use strict';
 
 const Homey = require('homey');
-const Roomba = require('../../lib/Roomba');
+const IRobotApi = require('../../lib/IRobotApi');
 
 const CLIENT_RESET_COUNTER = 30; // Broadcast is done every 10 seconds, 30 counter ~ 5 minutes
 const MEASURE_BATTERY_CAPABILITY = 'measure_battery';
-const MOB_STATE_CAPABILITY = 'mob_state';
-const MOB_STATE = {
+const VACUUMCLEANER_STATE_CAPABILITY = 'vacuumcleaner_state';
+const VACUUMCLEANER_STATE = {
   STOPPED: 'stopped',
   CLEANING: 'cleaning',
+  SPOT_CLEANING: 'spot_cleaning',
   DOCKED: 'docked',
   CHARGING: 'charging',
-  TANK_STATUS: 'tank_status'
 };
 
-class BraavaM6Device extends Homey.Device {
+class IRobotDevice extends Homey.Device {
   async onInit() {
     // Reset client every once in a while
     this._clientResetCounter = 0;
@@ -25,24 +25,28 @@ class BraavaM6Device extends Homey.Device {
     // Keep track of connected state
     this._connected = false;
 
-    // Create RoombaFinder and start listening for discovery events
-    this._roombaFinder = this.getDriver().braavaFinder;
-    this._roombaFinder.on(`braava:${this.getData().mac.toLowerCase()}`, this._discoveredThisRoomba.bind(this));
-    this.registerCapabilityListener(MOB_STATE_CAPABILITY, this._onMobCapabilityChanged.bind(this));
+    this._driver = this.getDriver();
+    let self = this;
+
+    // Create IRobotFinder and start listening for discovery events
+    this._irobotFinder = this._driver.irobotFinder;
+    this._irobotFinder.on(`irobot:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
+    this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
+
   }
 
   /**
-   * Method that tries to create a connection to a roomba using a given ip address.
+   * Method that tries to create a connection to a iRobot using a given ip address.
    * @returns {Promise<*>}
    */
   async connect() {
     this.log('connect() -> connect');
     this.setUnavailable(Homey.__('error.offline'));
 
-    // Destroy roombaApi if currently existing
-    if (this._roombaApi) {
-      await this._destroyRoombaApiInstance();
-      this.log('connect() -> destroyed left-over roombaApi');
+    // Destroy iRobot if currently existing
+    if (this._iRobotApi) {
+      await this._destroyIRobotApiInstance();
+      this.log('connect() -> destroyed left-over iRobotApi');
     }
 
     // Get device data
@@ -55,21 +59,21 @@ class BraavaM6Device extends Homey.Device {
 
     this.log(`connect() -> connect to (mac: ${data.mac})`);
 
-    // Create roomba instance
-    this._roombaApi = new Roomba(store.auth.username, store.auth.password, store.ip);
+    // Create iRobot instance
+    this._iRobotApi = new IRobotApi(store.auth.username, store.auth.password, store.ip);
 
-    // Bind roomba log methods
-    this._roombaApi.log = (...args) => this.log('[Roomba]', ...args);
-    this._roombaApi.error = (...args) => this.error('[Roomba]', ...args);
+    // Bind iRobot log methods
+    this._iRobotApi.log = (...args) => this.log('[iRobot]', ...args);
+    this._iRobotApi.error = (...args) => this.error('[iRobot]', ...args);
 
-    this.log(`connect() -> created new roomba instance (${store.auth.username}, ${store.auth.password}, ${store.ip}, ${data.mac})`);
+    this.log(`connect() -> created new iRobot instance (${store.auth.username}, ${store.auth.password}, ${store.ip}, ${data.mac})`);
 
-    // Bind roomba events
-    this._roombaApi.on('connected', this._onConnected.bind(this));
-    this._roombaApi.on('state', this._onState.bind(this));
+    // Bind iRobot events
+    this._iRobotApi.on('connected', this._onConnected.bind(this));
+    this._iRobotApi.on('state', this._onState.bind(this));
 
     try {
-      this._roombaApi.connect();
+      this._iRobotApi.connect();
     } catch (err) {
       this.error('connect() -> error', err);
       this._connected = false;
@@ -83,17 +87,17 @@ class BraavaM6Device extends Homey.Device {
    * @returns {Promise<void>}
    */
   async onDeleted() {
-    await this._destroyRoombaApiInstance();
+    await this._destroyIRobotApiInstance();
 
-    // Remove event listener on roomba finder
-    this._roombaFinder.removeListener(`roomba:${this.getData().mac.toLowerCase()}`, this._discoveredThisRoomba.bind(this));
+    // Remove event listener on iRobot finder
+    this._irobotFinder.removeListener(`irobot:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
 
-    // Remove reference to roomba finder
-    this._roombaFinder = null;
+    // Remove reference to iRobot finder
+    this._irobotFinder = null;
   }
 
   /**
-   * Event handler for state events from roomba.
+   * Event handler for state events from iRobot.
    * @param {Object} state
    * @private
    */
@@ -102,6 +106,14 @@ class BraavaM6Device extends Homey.Device {
     if (typeof state.batPct === 'number') {
       this.log('_onState() -> measure_battery received', state.batPct);
       this.setCapabilityValue('measure_battery', state.batPct).catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
+    }
+
+    // Detect battery state change
+    if (typeof state.tankLvl === 'number') {
+      this.log('_onState() -> tank_level received', state.tankLvl);
+      this.setCapabilityValue('tank_full', parseInt(state.tankLvl) === 100).catch(err => this.error(`could not set capability value ${state.tankLvl} for tank_full`, err));
+    } else {
+      this.removeCapability('tank_full');
     }
 
     if (state && state.cleanMissionStatus
@@ -114,72 +126,72 @@ class BraavaM6Device extends Homey.Device {
 
       if (cycle === 'none' && phase === 'charge') {
         if (this.getCapabilityValue(MEASURE_BATTERY_CAPABILITY) === 100) {
-          this.setCapabilityValue(MOB_STATE_CAPABILITY, 'docked')
+          this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.DOCKED)
             .catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
         } else {
-          this.setCapabilityValue(MOB_STATE_CAPABILITY, MOB_STATE.CHARGING)
-            .catch(err => this.error('could not set capability value charging for MOB_STATE', err));
+          this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.CHARGING)
+            .catch(err => this.error('could not set capability value charging for vacuumcleaner_state', err));
         }
       } else if (phase === 'stop') {
-        this.setCapabilityValue(MOB_STATE_CAPABILITY, MOB_STATE.STOPPED)
-          .catch(err => this.error('could not set capability value stopped for MOB_STATE', err));
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.STOPPED)
+          .catch(err => this.error('could not set capability value stopped for vacuumcleaner_state', err));
       } else if (cycle === 'dock' && phase === 'hmUsrDock') {
-        this.setCapabilityValue(MOB_STATE_CAPABILITY, MOB_STATE.DOCKED)
-          .catch(err => this.error('could not set capability value docked for MOB_STATE', err));
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.DOCKED)
+          .catch(err => this.error('could not set capability value docked for vacuumcleaner_state', err));
       } else if (cycle === 'quick' && phase === 'run') {
-        this.setCapabilityValue(MOB_STATE_CAPABILITY, MOB_STATE.CLEANING)
-          .catch(err => this.error('could not set capability value cleaning for MOB_STATE', err));
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.CLEANING)
+          .catch(err => this.error('could not set capability value cleaning for vacuumcleaner_state', err));
+      } else if (cycle === 'spot' && phase === 'run') {
+        this.setCapabilityValue(VACUUMCLEANER_STATE_CAPABILITY, VACUUMCLEANER_STATE.SPOT_CLEANING).catch(err => this.error('could not set capability value spot_cleaning for vacuumcleaner_state', err));
       }
     }
   }
 
   /**
-   * Capability value changed handler for MOB_STATE.
+   * Capability value changed handler for vacuumcleaner_state.
    * @param {string} value
    * @returns {Promise<IPublishPacket>}
    * @private
    */
-  _onMobCapabilityChanged(value) {
+  _onVacuumCapabilityChanged(value) {
     // Check if API is initialized
-    if (!this._roombaApi) {
-      this.error('_onMobCapabilityChanged() -> error roombaApi not initialised');
+    if (!this._iRobotApi) {
+      this.error('_onVacuumCapabilityChanged() -> error iRobotApi not initialised');
       return null;
     }
 
     try {
       // Determine desired action
       switch (value) {
-        case MOB_STATE.CLEANING:
-          return this._roombaApi.start();
-        case MOB_STATE.SPOT_CLEANING:
+        case VACUUMCLEANER_STATE.CLEANING:
+          return this._iRobotApi.start();
+        case VACUUMCLEANER_STATE.SPOT_CLEANING:
           return Promise.reject(new Error(Homey.__('error.spot_cleaning')));
-        case MOB_STATE.DOCKED:
-          return this._roombaApi.dock();
-        case MOB_STATE.CHARGING:
-          return this._roombaApi.dock();
-        case MOB_STATE.STOPPED:
-          return this._roombaApi.stop();
-        case MOB_STATE.TANK_STATUS:
-          return this._roombaApi.waitPreferences(false, ['tankLvl'], true);;
+        case VACUUMCLEANER_STATE.DOCKED:
+          return this._iRobotApi.dock();
+        case VACUUMCLEANER_STATE.CHARGING:
+          return this._iRobotApi.dock();
+        case VACUUMCLEANER_STATE.STOPPED:
+          return this._iRobotApi.stop();
         default:
-          this.error('_onMobCapabilityChanged() -> received unknown value:', value);
+          this.error('_onVacuumCapabilityChanged() -> received unknown value:', value);
           return Promise.reject(new Error(Homey.__('error.failed_state_change')));
       }
     } catch (err) {
-      this.log('_onMobCapabilityChanged() -> error', err);
+      this.log('_onVacuumCapabilityChanged() -> error', err);
       return Promise.reject(new Error(Homey.__('error.failed_state_change')));
     }
   }
 
   /**
-   * This method is called every time the RoombaFinder detects the roomba on the network. In case the IP is changed it is
+   * This method is called every time the IRobotFinder detects the iRobot on the network. In case the IP is changed it is
    * updated and a reconnect will be performed on the new IP.
    * @param {string} ip
    * @returns {Promise<void>}
    * @private
    */
-  async _discoveredThisRoomba({ ip }) {
-    this.log('_discoveredThisRoomba() -> ip', ip);
+  async _discoveredThisIRobot({ ip }) {
+    this.log('_discoveredThisIRobot() -> ip', ip);
 
     // Broadcast is done every 10 seconds, 30 counter ~ 5 minutes
     this._clientResetCounter++;
@@ -187,17 +199,17 @@ class BraavaM6Device extends Homey.Device {
     const ipChanged = this._checkIpChanged(ip);
     if (ipChanged) {
       if (ip) await this.setStoreValue('ip', ip); // Update ip address
-      this.log(`_discoveredThisRoomba() -> ip changed to ${ip}`);
+      this.log(`_discoveredThisIRobot() -> ip changed to ${ip}`);
     }
 
     if (!this._connected || ipChanged || this._clientResetCounter === CLIENT_RESET_COUNTER) {
-      // Connect to roomba (on possibly new ip address)
+      // Connect to iRobot (on possibly new ip address)
       this.connect().catch(err => this.error('connect() -> unknown error', err));
     }
   }
 
   /**
-   * Method that checks if a given IP address is different from the currently known IP address of the roomba.
+   * Method that checks if a given IP address is different from the currently known IP address of the iRobot.
    * @param {string} ip
    * @returns {boolean}
    * @private
@@ -209,7 +221,7 @@ class BraavaM6Device extends Homey.Device {
   }
 
   /**
-   * Connected to roomba client event. Mark device as available.
+   * Connected to iRobot client event. Mark device as available.
    * @private
    */
   _onConnected() {
@@ -218,17 +230,17 @@ class BraavaM6Device extends Homey.Device {
   }
 
   /**
-   * Destroy roomba api instance.
+   * Destroy iRobot api instance.
    * @returns {Promise<void>}
    * @private
    */
-  async _destroyRoombaApiInstance() {
+  async _destroyIRobotApiInstance() {
     this.log('_disconnectFromRobot()');
-    if (this._roombaApi) {
-      this._roombaApi.removeAllListeners();
-      await this._roombaApi.end();
+    if (this._iRobotApi) {
+      this._iRobotApi.removeAllListeners();
+      await this._iRobotApi.end();
     }
-    this._roombaApi = null; // important
+    this._iRobotApi = null; // important
   }
 
   /**
@@ -249,4 +261,4 @@ class BraavaM6Device extends Homey.Device {
   }
 }
 
-module.exports = BraavaM6Device;
+module.exports = IRobotDevice;

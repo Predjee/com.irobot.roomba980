@@ -1,19 +1,21 @@
 {
   "id": "com.irobot.roomba980",
   "name": {
-    "en": "Roomba"
+    "en": "iRobot"
   },
   "tags": {
     "en": [
       "roomba",
       "vacuum cleaner",
       "vacuum",
-      "irobot"
+      "irobot",
+      "dweil"
     ],
     "nl": [
       "roomba",
       "stofzuiger",
-      "irobot"
+      "irobot",
+      "dweil"
     ]
   },
   "category": "appliances",
@@ -25,113 +27,93 @@
     "email": "info@athom.com"
   },
   "description": {
-    "en": "iRobot Roomba support for Homey",
-    "nl": "iRobot Roomba ondersteuning voor Homey"
+    "en": "iRobot support for Homey",
+    "nl": "iRobot ondersteuning voor Homey"
   },
   "images": {
     "large": "/assets/images/large.jpg",
     "small": "/assets/images/small.jpg"
   },
   "capabilities": {
-    "mob_state": {
-      "type": "enum",
+    "tank_full": {
       "title": {
-        "en": "Mob State"
+        "en": "Watertank",
+        "nl": "Watertank"
       },
+      "type": "boolean",
       "getable": true,
-      "setable": true,
-      "values": [
-        {
-          "id": "stopped",
-          "title": {
-            "en": "Stopped"
+      "setable": false,
+      "uiComponent": "sensor",
+      "$flow": {
+        "triggers": [
+          {
+            "id": "full",
+            "title": {
+              "en": "The watertank is !{{full|empty}}",
+              "nl": "De watertank is !{{vol|leeg}}"
+            }
           }
-        },
-        {
-          "id": "cleaning",
-          "title": {
-            "en": "Cleaning"
+        ],
+        "conditions": [
+          {
+            "id": "full",
+            "title": {
+              "en": "The watertank is !{{full|empty}}",
+              "nl": "De watertank is !{{vol|leeg}}"
+            }
           }
-        },
-        {
-          "id": "docked",
-          "title": {
-            "en": "Docked"
-          }
-        },
-        {
-          "id": "charging",
-          "title": {
-            "en": "Charging"
-          }
-        },
-        {
-          "id": "tank_status",
-          "title": {
-            "en": "Tank status"
-          }
-        }
-      ]
+        ]
+      }
     }
+  },
+  "flow": {
+    "conditions": [
+      {
+        "id": "tank_full",
+        "title": {
+          "en": "Tank {{is|isn't}} full",
+          "nl": "Tank {{is|is niet}} vol"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=irobot&capabilities=tank_full"
+          }
+        ]
+      }
+    ]
   },
   "drivers": [
     {
-      "id": "roomba980",
+      "id": "irobot",
       "name": {
-        "en": "Roomba"
+        "en": "iRobot device",
+        "nl": "iRobot device"
       },
       "class": "vacuumcleaner",
       "capabilities": [
         "vacuumcleaner_state",
-        "measure_battery"
+        "measure_battery",
+        "tank_full"
       ],
       "images": {
-        "large": "/drivers/roomba980/assets/images/large.jpg",
-        "small": "/drivers/roomba980/assets/images/small.jpg"
+        "large": "/drivers/irobot/assets/images/large.png",
+        "small": "/drivers/irobot/assets/images/small.png"
       },
       "pair": [
         {
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "next": "add_roomba"
+            "next": "add_irobot"
           },
           "options": {
             "singular": true
           }
         },
         {
-          "id": "add_roomba"
-        }
-      ]
-    },
-    {
-      "id": "braavam6",
-      "name": {
-        "en": "Braava M6"
-      },
-      "class": "vacuumcleaner",
-      "capabilities": [
-        "mob_state",
-        "measure_battery"
-      ],
-      "images": {
-        "large": "/drivers/braavam6/assets/images/large.jpg",
-        "small": "/drivers/braavam6/assets/images/small.jpg"
-      },
-      "pair": [
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_braava"
-          },
-          "options": {
-            "singular": true
-          }
-        },
-        {
-          "id": "add_braava"
+          "id": "add_irobot"
         }
       ]
     }

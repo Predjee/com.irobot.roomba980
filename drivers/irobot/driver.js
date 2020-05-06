@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const tls = require('tls');
-const BraavaFinder = require('../../lib/BraavaFinder');
+const IRobotFinder = require('../../lib/IRobotFinder');
 
 const ROOMBA_PORT = 8883;
 const GET_PASSWORD_TIMEOUT = 5000;
@@ -18,29 +18,29 @@ const ERROR_INVALID_DEVICE = 'invalid_device_selected';
 const ERROR_GET_PASSWORD_TIMEOUT = 'get_password_timeout';
 const ERROR_NO_RESPONSE_PASSWORD_GET = 'no_response_on_password_request';
 
-class BraavaM6Driver extends Homey.Driver {
+class IRobotBaseDriver extends Homey.Driver {
   onInit() {
-    // Create braava finder used during pairing
-    this._braavaFinder = new BraavaFinder();
-    this._braavaFinder.log = (...args) => this.log('[BraavaFinder]', ...args);
-    this._braavaFinder.error = (...args) => this.error('[BraavaFinder]', ...args);
+    // Create roomba finder used during pairing
+    this._irobotFinder = new IRobotFinder();
+    this._irobotFinder.log = (...args) => this.log('[IRobotFinder]', ...args);
+    this._irobotFinder.error = (...args) => this.error('[IRobotFinder]', ...args);
   }
 
   /**
-   * Getter for protected braava finder instance.
-   * @returns {BraavaFinder}
+   * Getter for protected roomba finder instance.
+   * @returns {IRobotFinder}
    */
-  get braavaFinder() {
-    return this._braavaFinder;
+  get irobotFinder() {
+    return this._irobotFinder;
   }
 
   /**
-   * Return found roobma devices and exchange password when user presses button on braava.
+   * Return found roobma devices and exchange password when user presses button on roomba.
    * @param socket
    */
   onPair(socket) {
     socket.on('list_devices', (data, callback) => {
-      const devices = this._braavaFinder.braavas.map(braava => this._mapBraavaToDeviceObject(braava));
+      const devices = this._irobotFinder.devices.map(device => this._mapRoombaToDeviceObject(device));
       return callback(null, devices);
     });
 
@@ -89,7 +89,7 @@ class BraavaM6Driver extends Homey.Driver {
 
 
   /**
-   * Get password from Braava.
+   * Get password from Roomba.
    * @param {string} ip
    * @returns {Promise<unknown>}
    * @private
@@ -109,10 +109,10 @@ class BraavaM6Driver extends Homey.Driver {
         client.end();
       }, GET_PASSWORD_TIMEOUT);
 
-      // This hex code results in the Braava relaying its password back to us
+      // This hex code results in the Roomba relaying its password back to us
       // Legacy was undocumented so we're not sure why it's this string specifically
       client.once('secureConnect', () => {
-        this.log(`_getPassword() -> request password from braava (ip: ${ip})`);
+        this.log(`_getPassword() -> request password from roomba (ip: ${ip})`);
         client.write(Buffer.from(GET_PASSWORD_MESSAGE, 'hex'));
       });
 
@@ -190,12 +190,12 @@ class BraavaM6Driver extends Homey.Driver {
   }
 
   /**
-   * Maps braava object to Homey device object.
+   * Maps roomba object to Homey device object.
    * @param {Object} device
    * @returns {{data: {auth: {username: *}, ip: *, name: *, mac: *}, name: *}}
    * @private
    */
-  _mapBraavaToDeviceObject(device) {
+  _mapRoombaToDeviceObject(device) {
     return {
       name: device.robotname,
       data: {
@@ -211,4 +211,4 @@ class BraavaM6Driver extends Homey.Driver {
   }
 }
 
-module.exports = BraavaM6Driver;
+module.exports = IRobotBaseDriver;
