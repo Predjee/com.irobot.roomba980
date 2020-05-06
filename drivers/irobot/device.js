@@ -32,7 +32,6 @@ class IRobotDevice extends Homey.Device {
     this._irobotFinder = this._driver.irobotFinder;
     this._irobotFinder.on(`irobot:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
     this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
-
   }
 
   /**
@@ -80,6 +79,13 @@ class IRobotDevice extends Homey.Device {
     }
 
     this._connected = true;
+
+    new Homey.FlowCardCondition('tank_full')
+      .register()
+      .registerRunListener(( args, state ) => {
+
+        return Promise.resolve( args.device.getCapabilityValue('tank_full') );
+      });
   }
 
   /**

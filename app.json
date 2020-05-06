@@ -43,27 +43,7 @@
       "type": "boolean",
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
-      "$flow": {
-        "triggers": [
-          {
-            "id": "full",
-            "title": {
-              "en": "The watertank is !{{full|empty}}",
-              "nl": "De watertank is !{{vol|leeg}}"
-            }
-          }
-        ],
-        "conditions": [
-          {
-            "id": "full",
-            "title": {
-              "en": "The watertank is !{{full|empty}}",
-              "nl": "De watertank is !{{vol|leeg}}"
-            }
-          }
-        ]
-      }
+      "uiComponent": "sensor"
     }
   },
   "flow": {
@@ -71,14 +51,14 @@
       {
         "id": "tank_full",
         "title": {
-          "en": "Tank {{is|isn't}} full",
-          "nl": "Tank {{is|is niet}} vol"
+          "en": "Tank !{{is|isn't}} full",
+          "nl": "Tank !{{is|is niet}} vol"
         },
         "args": [
           {
             "name": "device",
             "type": "device",
-            "filter": "driver_id=irobot&capabilities=tank_full"
+            "filter": "capabilities=tank_full"
           }
         ]
       }
