@@ -86,6 +86,13 @@ class IRobotDevice extends Homey.Device {
 
         return Promise.resolve( args.device.getCapabilityValue('tank_full') );
       });
+
+    new Homey.FlowCardCondition('bin_full')
+      .register()
+      .registerRunListener(( args, state ) => {
+
+        return Promise.resolve( args.device.getCapabilityValue('bin_full') );
+      });
   }
 
   /**
@@ -120,6 +127,13 @@ class IRobotDevice extends Homey.Device {
       this.setCapabilityValue('tank_full', parseInt(state.tankLvl) === 100).catch(err => this.error(`could not set capability value ${state.tankLvl} for tank_full`, err));
     } else {
       this.removeCapability('tank_full');
+    }
+
+    if (typeof state.bin === 'object' && typeof state.bin.full === 'boolean') {
+      this.log('_onState() -> bin_full received', state.bin.full);
+      this.setCapabilityValue('bin_full', state.bin.full).catch(err => this.error(`could not set capability value ${state.bin.full} for bin_full`, err));
+    } else {
+      this.removeCapability('bin_full');
     }
 
     if (state && state.cleanMissionStatus

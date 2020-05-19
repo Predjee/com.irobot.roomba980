@@ -44,6 +44,16 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor"
+    },
+    "bin_full": {
+      "title": {
+        "en": "Vuilbak",
+        "nl": "Vuilbak"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor"
     }
   },
   "flow": {
@@ -61,6 +71,20 @@
             "filter": "capabilities=tank_full"
           }
         ]
+      },
+      {
+        "id": "bin_full",
+        "title": {
+          "en": "Bin !{{is|isn't}} full",
+          "nl": "Vuilbak !{{is|is niet}} vol"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "capabilities=bin_full"
+          }
+        ]
       }
     ]
   },
@@ -75,7 +99,8 @@
       "capabilities": [
         "vacuumcleaner_state",
         "measure_battery",
-        "tank_full"
+        "tank_full",
+        "bin_full"
       ],
       "images": {
         "large": "/drivers/irobot/assets/images/large.png",
