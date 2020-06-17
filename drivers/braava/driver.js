@@ -18,7 +18,7 @@ const ERROR_INVALID_DEVICE = 'invalid_device_selected';
 const ERROR_GET_PASSWORD_TIMEOUT = 'get_password_timeout';
 const ERROR_NO_RESPONSE_PASSWORD_GET = 'no_response_on_password_request';
 
-class IRobotBaseDriver extends Homey.Driver {
+class BraavaBaseDriver extends Homey.Driver {
   onInit() {
     // Create roomba finder used during pairing
     this._irobotFinder = new IRobotFinder();
@@ -40,7 +40,7 @@ class IRobotBaseDriver extends Homey.Driver {
    */
   onPair(socket) {
     socket.on('list_devices', (data, callback) => {
-      const devices = this._irobotFinder.vacuums.map(device => this._mapRoombaToDeviceObject(device));
+      const devices = this._irobotFinder.mobs.map(device => this._mapRoombaToDeviceObject(device));
       return callback(null, devices);
     });
 
@@ -211,4 +211,4 @@ class IRobotBaseDriver extends Homey.Driver {
   }
 }
 
-module.exports = IRobotBaseDriver;
+module.exports = BraavaBaseDriver;

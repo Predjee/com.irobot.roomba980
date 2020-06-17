@@ -14,7 +14,7 @@ const VACUUMCLEANER_STATE = {
   CHARGING: 'charging',
 };
 
-class IRobotDevice extends Homey.Device {
+class BraavaDevice extends Homey.Device {
   async onInit() {
     // Reset client every once in a while
     this._clientResetCounter = 0;
@@ -136,10 +136,14 @@ class IRobotDevice extends Homey.Device {
       this.setCapabilityValue('measure_battery', state.batPct).catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
     }
 
-    if (typeof state.bin === 'object' && typeof state.bin.full === 'boolean') {
-      this.log('_onState() -> bin_full received', state.bin.full);
-      this.setCapabilityValue('bin_full', state.bin.full).catch(err => this.error(`could not set capability value ${state.bin.full} for bin_full`, err));
-      this.setCapabilityValue('bin_present', state.bin.present).catch(err => this.error(`could not set capability value ${state.bin.present} for bin_present`, err));
+    if (typeof state.tankLvl === 'number') {
+      this.log('_onState() -> tank_level received', state.tankLvl);
+      this.setCapabilityValue('tank_full', parseInt(state.tankLvl) === 100).catch(err => this.error(`could not set capability value ${state.tankLvl} for tank_full`, err));
+    }
+
+    if (typeof state.mopReady === 'object') {
+      this.setCapabilityValue('tank_present', state.mopReady.tankPresent).catch(err => this.error(`could not set capability value ${state.mopReady.tankPresent} for tank_present`, err));
+      this.setCapabilityValue('lid_closed', state.mopReady.lidClosed).catch(err => this.error(`could not set capability value ${state.mopReady.lidClosed} for lid_closed`, err));
     }
 
     if (state && state.cleanMissionStatus
@@ -287,4 +291,4 @@ class IRobotDevice extends Homey.Device {
   }
 }
 
-module.exports = IRobotDevice;
+module.exports = BraavaDevice;
