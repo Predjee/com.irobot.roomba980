@@ -35,12 +35,12 @@ class BraavaBaseDriver extends Homey.Driver {
   }
 
   /**
-   * Return found roobma devices and exchange password when user presses button on roomba.
+   * Return found mob devices and exchange password when user presses button on device.
    * @param socket
    */
   onPair(socket) {
     socket.on('list_devices', (data, callback) => {
-      const devices = this._irobotFinder.mobs.map(device => this._mapRoombaToDeviceObject(device));
+      const devices = this._irobotFinder.mob.map(device => this._mapRoombaToDeviceObject(device));
       return callback(null, devices);
     });
 

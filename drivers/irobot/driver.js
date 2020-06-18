@@ -40,7 +40,7 @@ class IRobotBaseDriver extends Homey.Driver {
    */
   onPair(socket) {
     socket.on('list_devices', (data, callback) => {
-      const devices = this._irobotFinder.vacuums.map(device => this._mapRoombaToDeviceObject(device));
+      const devices = this._irobotFinder.vacuum.map(device => this._mapRoombaToDeviceObject(device));
       return callback(null, devices);
     });
 

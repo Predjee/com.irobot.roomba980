@@ -29,7 +29,7 @@ class BraavaDevice extends Homey.Device {
 
     // Create IRobotFinder and start listening for discovery events
     this._irobotFinder = this._driver.irobotFinder;
-    this._irobotFinder.on(`irobot:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
+    this._irobotFinder.on(`mob:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
     this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
   }
 
@@ -85,12 +85,6 @@ class BraavaDevice extends Homey.Device {
         return Promise.resolve(args.device.getCapabilityValue('tank_full'));
       });
 
-    new Homey.FlowCardCondition('bin_full')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('bin_full'));
-      });
-
     new Homey.FlowCardCondition('tank_present')
       .register()
       .registerRunListener((args, state) => {
@@ -102,12 +96,6 @@ class BraavaDevice extends Homey.Device {
       .registerRunListener((args, state) => {
         return Promise.resolve(args.device.getCapabilityValue('lid_closed'));
       });
-
-    new Homey.FlowCardCondition('bin_present')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('bin_present'));
-      });
   }
 
   /**
@@ -118,7 +106,7 @@ class BraavaDevice extends Homey.Device {
     await this._destroyIRobotApiInstance();
 
     // Remove event listener on iRobot finder
-    this._irobotFinder.removeListener(`irobot:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
+    this._irobotFinder.removeListener(`mob:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
 
     // Remove reference to iRobot finder
     this._irobotFinder = null;
@@ -130,7 +118,6 @@ class BraavaDevice extends Homey.Device {
    * @private
    */
   _onState(state) {
-    console.log(state);
     if (typeof state.batPct === 'number') {
       this.log('_onState() -> measure_battery received', state.batPct);
       this.setCapabilityValue('measure_battery', state.batPct).catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
