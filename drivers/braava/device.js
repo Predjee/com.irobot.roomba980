@@ -19,9 +19,6 @@ class BraavaDevice extends Homey.Device {
     // Reset client every once in a while
     this._clientResetCounter = 0;
 
-    // First migrate data properties to store
-    await this._migrateDataToStore();
-
     // Keep track of connected state
     this._connected = false;
 
@@ -258,23 +255,6 @@ class BraavaDevice extends Homey.Device {
       await this._iRobotApi.end();
     }
     this._iRobotApi = null; // important
-  }
-
-  /**
-   * Perform migration steps. Properties 'ip' and 'auth' are moved from data to store.
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _migrateDataToStore() {
-    const data = this.getData();
-    const store = this.getStore();
-
-    if (Object.prototype.hasOwnProperty.call(data, 'ip') && !Object.prototype.hasOwnProperty.call(store, 'ip')) {
-      await this.setStoreValue('ip', data.ip).catch(err => this.error('_migrateDataToStore() -> failed to migrate ip', err));
-    }
-    if (Object.prototype.hasOwnProperty.call(data, 'auth') && !Object.prototype.hasOwnProperty.call(store, 'auth')) {
-      await this.setStoreValue('auth', data.auth).catch(err => this.error('_migrateDataToStore() -> failed to migrate auth', err));
-    }
   }
 }
 
