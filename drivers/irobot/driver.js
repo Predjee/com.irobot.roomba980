@@ -18,7 +18,7 @@ const ERROR_INVALID_DEVICE = 'invalid_device_selected';
 const ERROR_GET_PASSWORD_TIMEOUT = 'get_password_timeout';
 const ERROR_NO_RESPONSE_PASSWORD_GET = 'no_response_on_password_request';
 
-class Roomba980Driver extends Homey.Driver {
+class IRobotBaseDriver extends Homey.Driver {
   onInit() {
     // Create roomba finder used during pairing
     this._irobotFinder = new IRobotFinder();
@@ -211,4 +211,4 @@ class Roomba980Driver extends Homey.Driver {
   }
 }
 
-module.exports = Roomba980Driver;
+module.exports = IRobotBaseDriver;

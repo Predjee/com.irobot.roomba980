@@ -14,13 +14,10 @@ const VACUUMCLEANER_STATE = {
   CHARGING: 'charging',
 };
 
-class Roomba980 extends Homey.Device {
+class BraavaDevice extends Homey.Device {
   async onInit() {
     // Reset client every once in a while
     this._clientResetCounter = 0;
-
-    // First migrate data properties to store
-    await this._migrateDataToStore();
 
     // Keep track of connected state
     this._connected = false;
@@ -29,7 +26,7 @@ class Roomba980 extends Homey.Device {
 
     // Create IRobotFinder and start listening for discovery events
     this._irobotFinder = this._driver.irobotFinder;
-    this._irobotFinder.on(`vacuum:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
+    this._irobotFinder.on(`mob:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
     this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
   }
 
@@ -79,16 +76,22 @@ class Roomba980 extends Homey.Device {
 
     this._connected = true;
 
-    new Homey.FlowCardCondition('bin_full')
+    new Homey.FlowCardCondition('tank_full')
       .register()
       .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('bin_full'));
+        return Promise.resolve(args.device.getCapabilityValue('tank_full'));
       });
 
-    new Homey.FlowCardCondition('bin_present')
+    new Homey.FlowCardCondition('tank_present')
       .register()
       .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('bin_present'));
+        return Promise.resolve(args.device.getCapabilityValue('tank_present'));
+      });
+
+    new Homey.FlowCardCondition('lid_closed')
+      .register()
+      .registerRunListener((args, state) => {
+        return Promise.resolve(args.device.getCapabilityValue('lid_closed'));
       });
   }
 
@@ -100,7 +103,7 @@ class Roomba980 extends Homey.Device {
     await this._destroyIRobotApiInstance();
 
     // Remove event listener on iRobot finder
-    this._irobotFinder.removeListener(`vacuum:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
+    this._irobotFinder.removeListener(`mob:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
 
     // Remove reference to iRobot finder
     this._irobotFinder = null;
@@ -117,16 +120,14 @@ class Roomba980 extends Homey.Device {
       this.setCapabilityValue('measure_battery', state.batPct).catch(err => this.error(`could not set capability value ${state.batPct} for measure_battery`, err));
     }
 
-    if (typeof state.bin === 'object' && typeof state.bin.full === 'boolean') {
-      this.log('_onState() -> bin_full received', state.bin.full);
-      if (!this.hasCapability('bin_full')) {
-        this.addCapability('bin_full');
-      }
-      if (!this.hasCapability('bin_present')) {
-        this.addCapability('bin_present');
-      }
-      this.setCapabilityValue('bin_full', state.bin.full).catch(err => this.error(`could not set capability value ${state.bin.full} for bin_full`, err));
-      this.setCapabilityValue('bin_present', state.bin.present).catch(err => this.error(`could not set capability value ${state.bin.present} for bin_present`, err));
+    if (typeof state.tankLvl === 'number') {
+      this.log('_onState() -> tank_level received', state.tankLvl);
+      this.setCapabilityValue('tank_full', parseInt(state.tankLvl) === 100).catch(err => this.error(`could not set capability value ${state.tankLvl} for tank_full`, err));
+    }
+
+    if (typeof state.mopReady === 'object') {
+      this.setCapabilityValue('tank_present', state.mopReady.tankPresent).catch(err => this.error(`could not set capability value ${state.mopReady.tankPresent} for tank_present`, err));
+      this.setCapabilityValue('lid_closed', state.mopReady.lidClosed).catch(err => this.error(`could not set capability value ${state.mopReady.lidClosed} for lid_closed`, err));
     }
 
     if (state && state.cleanMissionStatus
@@ -255,23 +256,6 @@ class Roomba980 extends Homey.Device {
     }
     this._iRobotApi = null; // important
   }
-
-  /**
-   * Perform migration steps. Properties 'ip' and 'auth' are moved from data to store.
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _migrateDataToStore() {
-    const data = this.getData();
-    const store = this.getStore();
-
-    if (Object.prototype.hasOwnProperty.call(data, 'ip') && !Object.prototype.hasOwnProperty.call(store, 'ip')) {
-      await this.setStoreValue('ip', data.ip).catch(err => this.error('_migrateDataToStore() -> failed to migrate ip', err));
-    }
-    if (Object.prototype.hasOwnProperty.call(data, 'auth') && !Object.prototype.hasOwnProperty.call(store, 'auth')) {
-      await this.setStoreValue('auth', data.auth).catch(err => this.error('_migrateDataToStore() -> failed to migrate auth', err));
-    }
-  }
 }
 
-module.exports = Roomba980;
+module.exports = BraavaDevice;
