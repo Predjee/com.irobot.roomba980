@@ -1,0 +1,5 @@
+{
+  "3.0.0": {
+    "en": "Complete refactoring, added support for Braava M6 and multiple versions of Roomba (960, 980 tested) (i7, i9 untested)"
+  }
+}
