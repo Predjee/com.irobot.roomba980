@@ -4,11 +4,11 @@
 	 viewBox="0 0 3770.5 4662.2" style="enable-background:new 0 0 3770.5 4662.2;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#00000;}
-	
+
 	.fillpulse {
 		animation: fillpulse 10s infinite;
 	}
-	
+
 	@keyframes fillpulse {
 		0%, 20%, 60%, 100% {
 			fill: rgba(0,0,0,1);
@@ -17,11 +17,11 @@
 			fill: #0074CC;
 		}
 	}
-	
+
 	.move {
 		animation: move 10s infinite;
 	}
-	
+
 	@keyframes move {
 	    0% {
 	        transform: translate3d(0px, 0px, 0px);
@@ -40,7 +40,7 @@
 	    }
 	}
 </style>
-<g id="Roomba" class="move">
+<g id="IRobotApi" class="move">
 	<g id="Layer_2">
 		<g>
 			<path class="st0" d="M2724.9,2670.4l-36.9-865.5c-1.9-42.2-9.1-69.8-23.2-89.2c-16.2-22.4-41.5-33.3-77.3-33.3v28.3
@@ -355,11 +355,11 @@
 </g>
 <g id="Dock">
 	<g>
-		
+
 			<rect x="2374.5" y="601.6" transform="matrix(0.1294 -0.9916 0.9916 0.1294 1674.7761 3144.7849)" class="st0" width="507.7" height="34"/>
 	</g>
 	<g>
-		
+
 			<rect x="1125.2" y="364.9" transform="matrix(0.9916 -0.1294 0.1294 0.9916 -70.4633 153.0028)" class="st0" width="34" height="507.7"/>
 	</g>
 	<g>

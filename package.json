@@ -1,7 +1,7 @@
 {
   "name": "com.irobot.roomba980",
   "version": "1.0.0",
-  "description": "This app adds support for the Roomba vacuum cleaners to Homey.",
+  "description": "This app adds support for the Roomba vacuum cleaners and the Braava M6 to Homey.",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

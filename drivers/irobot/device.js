@@ -14,13 +14,10 @@ const VACUUMCLEANER_STATE = {
   CHARGING: 'charging',
 };
 
-class Roomba980 extends Homey.Device {
+class IRobotDevice extends Homey.Device {
   async onInit() {
     // Reset client every once in a while
     this._clientResetCounter = 0;
-
-    // First migrate data properties to store
-    await this._migrateDataToStore();
 
     // Keep track of connected state
     this._connected = false;
@@ -119,12 +116,6 @@ class Roomba980 extends Homey.Device {
 
     if (typeof state.bin === 'object' && typeof state.bin.full === 'boolean') {
       this.log('_onState() -> bin_full received', state.bin.full);
-      if (!this.hasCapability('bin_full')) {
-        this.addCapability('bin_full');
-      }
-      if (!this.hasCapability('bin_present')) {
-        this.addCapability('bin_present');
-      }
       this.setCapabilityValue('bin_full', state.bin.full).catch(err => this.error(`could not set capability value ${state.bin.full} for bin_full`, err));
       this.setCapabilityValue('bin_present', state.bin.present).catch(err => this.error(`could not set capability value ${state.bin.present} for bin_present`, err));
     }
@@ -255,23 +246,6 @@ class Roomba980 extends Homey.Device {
     }
     this._iRobotApi = null; // important
   }
-
-  /**
-   * Perform migration steps. Properties 'ip' and 'auth' are moved from data to store.
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _migrateDataToStore() {
-    const data = this.getData();
-    const store = this.getStore();
-
-    if (Object.prototype.hasOwnProperty.call(data, 'ip') && !Object.prototype.hasOwnProperty.call(store, 'ip')) {
-      await this.setStoreValue('ip', data.ip).catch(err => this.error('_migrateDataToStore() -> failed to migrate ip', err));
-    }
-    if (Object.prototype.hasOwnProperty.call(data, 'auth') && !Object.prototype.hasOwnProperty.call(store, 'auth')) {
-      await this.setStoreValue('auth', data.auth).catch(err => this.error('_migrateDataToStore() -> failed to migrate auth', err));
-    }
-  }
 }
 
-module.exports = Roomba980;
+module.exports = IRobotDevice;
