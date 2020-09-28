@@ -26,6 +26,14 @@
     "name": "Michel Falke",
     "email": "michel@yiggle.nl"
   },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Athom B.V.",
+        "email": "info@athom.com"
+      }
+    ]
+  },
   "description": {
     "en": "iRobot support for Homey",
     "nl": "iRobot ondersteuning voor Homey"
