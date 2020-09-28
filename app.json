@@ -9,7 +9,7 @@
       "vacuum cleaner",
       "vacuum",
       "irobot",
-      "dweil"
+      "mob"
     ],
     "nl": [
       "roomba",
@@ -20,11 +20,11 @@
   },
   "category": "appliances",
   "sdk": 2,
-  "version": "2.0.4",
+  "version": "3.0.0",
   "compatibility": ">=1.5.0",
   "author": {
-    "name": "Athom B.V.",
-    "email": "info@athom.com"
+    "name": "Michel Falke",
+    "email": "michel@yiggle.nl"
   },
   "description": {
     "en": "iRobot support for Homey",
