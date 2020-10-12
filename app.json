@@ -19,9 +19,9 @@
     ]
   },
   "category": "appliances",
-  "sdk": 2,
-  "version": "3.0.0",
-  "compatibility": ">=1.5.0",
+  "sdk": 3,
+  "version": "4.0.0",
+  "compatibility": ">=5.0.0",
   "author": {
     "name": "Michel Falke",
     "email": "michel@yiggle.nl"
@@ -34,6 +34,18 @@
       }
     ]
   },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "Predjee"
+      }
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/Predjee/com.irobot.roomba980/issues"
+  },
+  "source": "https://github.com/Predjee/com.irobot.roomba980",
+  "support": "mailto:michel@yiggle.nl",
   "description": {
     "en": "iRobot support for Homey",
     "nl": "iRobot ondersteuning voor Homey"
@@ -51,7 +63,8 @@
       "type": "boolean",
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor"
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/tank_full.svg"
     },
     "tank_present": {
       "title": {
@@ -61,7 +74,8 @@
       "type": "boolean",
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor"
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/tank_full.svg"
     },
     "lid_closed": {
       "title": {
@@ -71,7 +85,19 @@
       "type": "boolean",
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor"
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/lid.svg"
+    },
+    "detected_pad": {
+      "title": {
+        "en": "Detected pad",
+        "nl": "Dweildoek aawezig"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/pad.svg"
     },
     "bin_full": {
       "title": {
@@ -106,7 +132,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "capabilities=tank_full"
+            "filter": "driver_id=braava"
           }
         ]
       },
@@ -120,7 +146,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "capabilities=tank_present"
+            "filter": "driver_id=braava"
           }
         ]
       },
@@ -134,7 +160,21 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "capabilities=lid_closed"
+            "filter": "driver_id=braava"
+          }
+        ]
+      },
+      {
+        "id": "no_pad_detected",
+        "title": {
+          "en": "There !{{is|isn't}} a pad detected",
+          "nl": "Er !{{is een|is geen}} dweildoek gedetecteerd"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=braava"
           }
         ]
       },
@@ -148,7 +188,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "capabilities=bin_full"
+            "filter": "driver_id=irobot|roomba980"
           }
         ]
       },
@@ -162,7 +202,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "capabilities=bin_present"
+            "filter": "driver_id=irobot|roomba980"
           }
         ]
       }
@@ -257,7 +297,8 @@
         "measure_battery",
         "tank_full",
         "tank_present",
-        "lid_closed"
+        "lid_closed",
+        "detected_pad"
       ],
       "images": {
         "large": "/drivers/braava/assets/images/large.png",

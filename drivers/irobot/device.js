@@ -22,10 +22,8 @@ class IRobotDevice extends Homey.Device {
     // Keep track of connected state
     this._connected = false;
 
-    this._driver = this.getDriver();
-
     // Create IRobotFinder and start listening for discovery events
-    this._irobotFinder = this._driver.irobotFinder;
+    this._irobotFinder = this.driver.irobotFinder;
     this._irobotFinder.on(`vacuum:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
     this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
   }
@@ -36,7 +34,7 @@ class IRobotDevice extends Homey.Device {
    */
   async connect() {
     this.log('connect() -> connect');
-    this.setUnavailable(Homey.__('error.offline'));
+    this.setUnavailable(this.homey.__('error.offline'));
 
     // Destroy iRobot if currently existing
     if (this._iRobotApi) {
@@ -76,17 +74,15 @@ class IRobotDevice extends Homey.Device {
 
     this._connected = true;
 
-    new Homey.FlowCardCondition('bin_full')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('bin_full'));
-      });
+    let binFullCodition = this.homey.flow.getConditionCard('bin_full');
+    binFullCodition.registerRunListener((args, state) => {
+      return Promise.resolve(args.device.getCapabilityValue('bin_full'));
+    });
 
-    new Homey.FlowCardCondition('bin_present')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('bin_present'));
-      });
+    let binPresentCondition = this.homey.flow.getConditionCard('bin_present')
+    binPresentCondition.registerRunListener((args, state) => {
+      return Promise.resolve(args.device.getCapabilityValue('bin_present'));
+    });
   }
 
   /**
@@ -170,7 +166,7 @@ class IRobotDevice extends Homey.Device {
         case VACUUMCLEANER_STATE.CLEANING:
           return this._iRobotApi.start();
         case VACUUMCLEANER_STATE.SPOT_CLEANING:
-          return Promise.reject(new Error(Homey.__('error.spot_cleaning')));
+          return Promise.reject(new Error(this.homey.__('error.spot_cleaning')));
         case VACUUMCLEANER_STATE.DOCKED:
           return this._iRobotApi.dock();
         case VACUUMCLEANER_STATE.CHARGING:
@@ -179,11 +175,11 @@ class IRobotDevice extends Homey.Device {
           return this._iRobotApi.stop();
         default:
           this.error('_onVacuumCapabilityChanged() -> received unknown value:', value);
-          return Promise.reject(new Error(Homey.__('error.failed_state_change')));
+          return Promise.reject(new Error(this.homey.__('error.failed_state_change')));
       }
     } catch (err) {
       this.log('_onVacuumCapabilityChanged() -> error', err);
-      return Promise.reject(new Error(Homey.__('error.failed_state_change')));
+      return Promise.reject(new Error(this.homey.__('error.failed_state_change')));
     }
   }
 
