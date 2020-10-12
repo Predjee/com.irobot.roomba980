@@ -36,22 +36,20 @@ class IRobotBaseDriver extends Homey.Driver {
 
   /**
    * Return found roobma devices and exchange password when user presses button on roomba.
-   * @param socket
+   * @param session
    */
-  onPair(socket) {
-    socket.on('list_devices', (data, callback) => {
-      const devices = this._irobotFinder.vacuum.map(device => this._mapRoombaToDeviceObject(device));
-      return callback(null, devices);
+  onPair(session) {
+    session.setHandler('list_devices', async (data) => {
+      return this._irobotFinder.vacuum.map(device => this._mapRoombaToDeviceObject(device));
     });
 
-    socket.on('list_devices_selection', (data, callback) => {
-      if (callback) callback(null, true); // quick callback
+    session.setHandler('list_devices_selection', async (data) => {
       this.log('onPair() -> selected device', data[0]);
 
       // No device selected, should not be possible
       if (data.length === 0) {
         this.error('onPair() -> no device selected');
-        return socket.emit(PAIR_EVENT_AUTHENTICATED, new Error(ERROR_NO_DEVICE));
+        return session.emit(PAIR_EVENT_AUTHENTICATED, new Error(ERROR_NO_DEVICE));
       }
 
       // Validate device object
@@ -61,7 +59,7 @@ class IRobotBaseDriver extends Homey.Driver {
         || !Object.prototype.hasOwnProperty.call(device.store, 'auth')
       ) {
         this.error('onPair() -> received invalid device object', device);
-        return socket.emit(PAIR_EVENT_AUTHENTICATED, new Error(ERROR_INVALID_DEVICE));
+        return session.emit(PAIR_EVENT_AUTHENTICATED, new Error(ERROR_INVALID_DEVICE));
       }
 
       this.log(`onPair() -> check (ip: ${device.store.ip})`);
@@ -73,15 +71,15 @@ class IRobotBaseDriver extends Homey.Driver {
 
           // Store password in device data object
           device.store.auth.password = password;
-          return socket.emit(PAIR_EVENT_AUTHENTICATED, device);
+          return session.emit(PAIR_EVENT_AUTHENTICATED, device);
         })
         .catch(err => {
           this.error('onPair() -> error while retrieving password', err);
           if (err.message === ERROR_GET_PASSWORD_TIMEOUT) { // Abort on timeout error
-            return socket.emit(PAIR_EVENT_AUTHENTICATED, err);
+            return session.emit(PAIR_EVENT_AUTHENTICATED, err);
           }
           if (err.message === ERROR_IN_USE) { // Abort on error in use
-            return socket.emit(PAIR_EVENT_AUTHENTICATED, err);
+            return session.emit(PAIR_EVENT_AUTHENTICATED, err);
           }
         });
     });
