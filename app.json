@@ -270,7 +270,8 @@
       "type": "boolean",
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor"
+      "uiComponent": "sensor",
+      "icon": "/drivers/irobot/assets/bin.svg"
     },
     "bin_present": {
       "title": {
@@ -280,7 +281,8 @@
       "type": "boolean",
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor"
+      "uiComponent": "sensor",
+      "icon": "/drivers/irobot/assets/bin.svg"
     },
     "detected_pad": {
       "title": {

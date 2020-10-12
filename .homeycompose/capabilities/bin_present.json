@@ -6,5 +6,6 @@
   "type": "boolean",
   "getable": true,
   "setable": false,
-  "uiComponent": "sensor"
+  "uiComponent": "sensor",
+  "icon": "/drivers/irobot/assets/bin.svg"
 }
