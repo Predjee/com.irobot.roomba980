@@ -1,0 +1,11 @@
+{
+  "title": {
+    "en": "Detected pad",
+    "nl": "Dweildoek aawezig"
+  },
+  "type": "boolean",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/drivers/braava/assets/pad.svg"
+}

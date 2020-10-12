@@ -1,0 +1,11 @@
+{
+  "title": {
+    "en": "Lid is closed",
+    "nl": "Deksel is dicht"
+  },
+  "type": "boolean",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/drivers/braava/assets/lid.svg"
+}

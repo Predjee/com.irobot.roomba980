@@ -1,0 +1,57 @@
+{
+  "id": "com.irobot.roomba980",
+  "name": {
+    "en": "iRobot"
+  },
+  "tags": {
+    "en": [
+      "roomba",
+      "vacuum cleaner",
+      "vacuum",
+      "irobot",
+      "mob"
+    ],
+    "nl": [
+      "roomba",
+      "stofzuiger",
+      "irobot",
+      "dweil"
+    ]
+  },
+  "category": "appliances",
+  "sdk": 3,
+  "version": "4.0.1",
+  "compatibility": ">=5.0.0",
+  "author": {
+    "name": "Michel Falke",
+    "email": "michel@yiggle.nl"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Athom B.V.",
+        "email": "info@athom.com"
+      }
+    ]
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "Predjee"
+      }
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/Predjee/com.irobot.roomba980/issues"
+  },
+  "source": "https://github.com/Predjee/com.irobot.roomba980",
+  "support": "mailto:michel@yiggle.nl",
+  "description": {
+    "en": "iRobot support for Homey",
+    "nl": "iRobot ondersteuning voor Homey"
+  },
+  "images": {
+    "large": "/assets/images/large.jpg",
+    "small": "/assets/images/small.jpg"
+  }
+}

@@ -22,10 +22,8 @@ class BraavaDevice extends Homey.Device {
     // Keep track of connected state
     this._connected = false;
 
-    this._driver = this.getDriver();
-
     // Create IRobotFinder and start listening for discovery events
-    this._irobotFinder = this._driver.irobotFinder;
+    this._irobotFinder = this.driver.irobotFinder;
     this._irobotFinder.on(`mob:${this.getData().mac.toLowerCase()}`, this._discoveredThisIRobot.bind(this));
     this.registerCapabilityListener(VACUUMCLEANER_STATE_CAPABILITY, this._onVacuumCapabilityChanged.bind(this));
   }
@@ -36,7 +34,7 @@ class BraavaDevice extends Homey.Device {
    */
   async connect() {
     this.log('connect() -> connect');
-    this.setUnavailable(Homey.__('error.offline'));
+    this.setUnavailable(this.homey.__('error.offline'));
 
     // Destroy iRobot if currently existing
     if (this._iRobotApi) {
@@ -76,23 +74,25 @@ class BraavaDevice extends Homey.Device {
 
     this._connected = true;
 
-    new Homey.FlowCardCondition('tank_full')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('tank_full'));
-      });
+    let alarmTankFull = this.homey.flow.getConditionCard('tank_full');
+    alarmTankFull.registerRunListener((args, state) => {
+      return Promise.resolve(args.device.getCapabilityValue('tank_full'));
+    });
 
-    new Homey.FlowCardCondition('tank_present')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('tank_present'));
-      });
+    let alarmTankPresent = this.homey.flow.getConditionCard('tank_present')
+    alarmTankPresent.registerRunListener((args, state) => {
+      return Promise.resolve(args.device.getCapabilityValue('tank_present'));
+    });
 
-    new Homey.FlowCardCondition('lid_closed')
-      .register()
-      .registerRunListener((args, state) => {
-        return Promise.resolve(args.device.getCapabilityValue('lid_closed'));
-      });
+    let alarmLidClosed = this.homey.flow.getConditionCard('lid_closed')
+    alarmLidClosed.registerRunListener((args, state) => {
+      return Promise.resolve(args.device.getCapabilityValue('lid_closed'));
+    });
+
+    let noPadDetected = this.homey.flow.getConditionCard('no_pad_detected')
+    noPadDetected.registerRunListener((args, state) => {
+      return Promise.resolve(args.device.getCapabilityValue('detected_pad'));
+    });
   }
 
   /**
@@ -128,6 +128,19 @@ class BraavaDevice extends Homey.Device {
     if (typeof state.mopReady === 'object') {
       this.setCapabilityValue('tank_present', state.mopReady.tankPresent).catch(err => this.error(`could not set capability value ${state.mopReady.tankPresent} for tank_present`, err));
       this.setCapabilityValue('lid_closed', state.mopReady.lidClosed).catch(err => this.error(`could not set capability value ${state.mopReady.lidClosed} for lid_closed`, err));
+    }
+
+    if (typeof state.detectedPad === 'string') {
+      if (!this.hasCapability('detected_pad')) {
+        this.addCapability('detected_pad');
+      }
+
+      let detectedPad = true;
+      if (state.detectedPad === 'invalid') {
+        detectedPad = false;
+      }
+
+      this.setCapabilityValue('detected_pad', detectedPad).catch(err => this.error(`could not set capability value ${detectedPad} for detected_pad`, err));
     }
 
     if (state && state.cleanMissionStatus
@@ -180,7 +193,7 @@ class BraavaDevice extends Homey.Device {
         case VACUUMCLEANER_STATE.CLEANING:
           return this._iRobotApi.start();
         case VACUUMCLEANER_STATE.SPOT_CLEANING:
-          return Promise.reject(new Error(Homey.__('error.spot_cleaning')));
+          return Promise.reject(new Error(this.homey.__('error.spot_cleaning')));
         case VACUUMCLEANER_STATE.DOCKED:
           return this._iRobotApi.dock();
         case VACUUMCLEANER_STATE.CHARGING:
@@ -189,11 +202,11 @@ class BraavaDevice extends Homey.Device {
           return this._iRobotApi.stop();
         default:
           this.error('_onVacuumCapabilityChanged() -> received unknown value:', value);
-          return Promise.reject(new Error(Homey.__('error.failed_state_change')));
+          return Promise.reject(new Error(this.homey.__('error.failed_state_change')));
       }
     } catch (err) {
       this.log('_onVacuumCapabilityChanged() -> error', err);
-      return Promise.reject(new Error(Homey.__('error.failed_state_change')));
+      return Promise.reject(new Error(this.homey.__('error.failed_state_change')));
     }
   }
 
@@ -254,7 +267,7 @@ class BraavaDevice extends Homey.Device {
       this._iRobotApi.removeAllListeners();
       await this._iRobotApi.end();
     }
-    this._iRobotApi = null; // important
+    this._iRobotApi = null;
   }
 }
 

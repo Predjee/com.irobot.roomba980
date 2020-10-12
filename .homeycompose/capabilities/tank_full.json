@@ -1,0 +1,11 @@
+{
+  "title": {
+    "en": "Watertank full",
+    "nl": "Watertank vol"
+  },
+  "type": "boolean",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/drivers/braava/assets/tank_full.svg"
+}

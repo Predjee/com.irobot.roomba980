@@ -1,0 +1,14 @@
+{
+  "id": "bin_present",
+  "title": {
+    "en": "Bin !{{is|isn't}} present",
+    "nl": "Vuilbak !{{is|is niet}} aanwezig"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=irobot|roomba980"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "title": {
+    "en": "Watertank present",
+    "nl": "Watertank aanwezig"
+  },
+  "type": "boolean",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/drivers/braava/assets/tank_full.svg"
+}

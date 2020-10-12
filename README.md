@@ -1,17 +1,16 @@
 # Roomba
 
-This app adds support for the Roomba vacuum cleaners to Homey.
-
-While the only officially supported device is the Roomba 980, the app seems to work with quite a lot of other Roomba vacuumcleaners.
+This app adds support for the Roomba (WiFi) vacuum cleaners and the Braava M6 to Homey.
 
 Supported functionality:
 
- * Starting or stopping the Roomba
- * Sending the Roomba to the dock
+ * Starting or stopping the Roomba/Braava
+ * Sending the Roomba/Braava to the dock
  * Checking the battery status
  * Checking the current cleaning activity
- * Checking the state of the bin
- * Checking the state of the watertank
+ * Checking the state of the bin of Roomba
+ * Checking the state of the watertank of the Braava
+ * Checking the state of the pad of the Braava
 
 Unsupported functionality:
 
@@ -25,6 +24,7 @@ Future support wishes:
  * Trigger cleaning based on conditions
 
 ## Version history
+ * 4.0.0: Updated code base to become compatible with SDK 3
  * 3.0.0: Updated code base added wider support of roomba's (untested multiple devices only tested the 960 and 980), added the braava m6
  * 2.0.4: Updated code base
  * 2.0.3: Fixed a bug which could result in not discovering a Roomba
