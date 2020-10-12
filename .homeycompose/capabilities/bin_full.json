@@ -1,0 +1,10 @@
+{
+  "title": {
+    "en": "Bin full",
+    "nl": "Afvalbak vol"
+  },
+  "type": "boolean",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor"
+}

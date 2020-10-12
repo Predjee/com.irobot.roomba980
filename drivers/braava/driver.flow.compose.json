@@ -1,0 +1,36 @@
+{
+  "conditions": [
+    {
+      "id": "tank_full",
+      "title": {
+        "en": "Tank !{{is|isn't}} full",
+        "nl": "Tank !{{is|is niet}} vol"
+      },
+      "args": []
+    },
+    {
+      "id": "tank_present",
+      "title": {
+        "en": "Tank !{{is|isn't}} present",
+        "nl": "Tank !{{is|is niet}} aanwezig"
+      },
+      "args": []
+    },
+    {
+      "id": "lid_closed",
+      "title": {
+        "en": "Lid !{{is|isn't}} closed",
+        "nl": "Deksel !{{is|is niet}} dicht"
+      },
+      "args": []
+    },
+    {
+      "id": "no_pad_detected",
+      "title": {
+        "en": "There !{{is|isn't}} a pad detected",
+        "nl": "Er !{{is een|is geen}} dweildoek gedetecteerd"
+      },
+      "args": []
+    }
+  ]
+}

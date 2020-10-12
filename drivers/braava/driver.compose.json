@@ -1,0 +1,39 @@
+{
+  "name": {
+    "en": "iRobot mob",
+    "nl": "iRobot dweil"
+  },
+  "class": "vacuumcleaner",
+  "energy": {
+    "batteries": [
+      "INTERNAL"
+    ]
+  },
+  "capabilities": [
+    "vacuumcleaner_state",
+    "measure_battery",
+    "tank_full",
+    "tank_present",
+    "lid_closed",
+    "detected_pad"
+  ],
+  "images": {
+    "large": "/drivers/braava/assets/images/large.png",
+    "small": "/drivers/braava/assets/images/small.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_braava"
+      },
+      "options": {
+        "singular": true
+      }
+    },
+    {
+      "id": "add_braava"
+    }
+  ]
+}

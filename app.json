@@ -54,130 +54,8 @@
     "large": "/assets/images/large.jpg",
     "small": "/assets/images/small.jpg"
   },
-  "capabilities": {
-    "tank_full": {
-      "title": {
-        "en": "Watertank full",
-        "nl": "Watertank vol"
-      },
-      "type": "boolean",
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "icon": "/drivers/braava/assets/tank_full.svg"
-    },
-    "tank_present": {
-      "title": {
-        "en": "Watertank present",
-        "nl": "Watertank aanwezig"
-      },
-      "type": "boolean",
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "icon": "/drivers/braava/assets/tank_full.svg"
-    },
-    "lid_closed": {
-      "title": {
-        "en": "Lid is closed",
-        "nl": "Deksel is dicht"
-      },
-      "type": "boolean",
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "icon": "/drivers/braava/assets/lid.svg"
-    },
-    "detected_pad": {
-      "title": {
-        "en": "Detected pad",
-        "nl": "Dweildoek aawezig"
-      },
-      "type": "boolean",
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "icon": "/drivers/braava/assets/pad.svg"
-    },
-    "bin_full": {
-      "title": {
-        "en": "Bin full",
-        "nl": "Afvalbak vol"
-      },
-      "type": "boolean",
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor"
-    },
-    "bin_present": {
-      "title": {
-        "en": "Bin present",
-        "nl": "Afvalbak aanwezig"
-      },
-      "type": "boolean",
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor"
-    }
-  },
   "flow": {
     "conditions": [
-      {
-        "id": "tank_full",
-        "title": {
-          "en": "Tank !{{is|isn't}} full",
-          "nl": "Tank !{{is|is niet}} vol"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=braava"
-          }
-        ]
-      },
-      {
-        "id": "tank_present",
-        "title": {
-          "en": "Tank !{{is|isn't}} present",
-          "nl": "Tank !{{is|is niet}} aanwezig"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=braava"
-          }
-        ]
-      },
-      {
-        "id": "lid_closed",
-        "title": {
-          "en": "Lid !{{is|isn't}} closed",
-          "nl": "Deksel !{{is|is niet}} dicht"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=braava"
-          }
-        ]
-      },
-      {
-        "id": "no_pad_detected",
-        "title": {
-          "en": "There !{{is|isn't}} a pad detected",
-          "nl": "Er !{{is een|is geen}} dweildoek gedetecteerd"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=braava"
-          }
-        ]
-      },
       {
         "id": "bin_full",
         "title": {
@@ -205,92 +83,76 @@
             "filter": "driver_id=irobot|roomba980"
           }
         ]
+      },
+      {
+        "id": "tank_full",
+        "title": {
+          "en": "Tank !{{is|isn't}} full",
+          "nl": "Tank !{{is|is niet}} vol"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=braava"
+          }
+        ]
+      },
+      {
+        "id": "tank_present",
+        "title": {
+          "en": "Tank !{{is|isn't}} present",
+          "nl": "Tank !{{is|is niet}} aanwezig"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=braava"
+          }
+        ]
+      },
+      {
+        "id": "lid_closed",
+        "title": {
+          "en": "Lid !{{is|isn't}} closed",
+          "nl": "Deksel !{{is|is niet}} dicht"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=braava"
+          }
+        ]
+      },
+      {
+        "id": "no_pad_detected",
+        "title": {
+          "en": "There !{{is|isn't}} a pad detected",
+          "nl": "Er !{{is een|is geen}} dweildoek gedetecteerd"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=braava"
+          }
+        ]
       }
     ]
   },
   "drivers": [
     {
-      "id": "irobot",
-      "name": {
-        "en": "iRobot vacuumcleaner",
-        "nl": "iRobot stofzuiger"
-      },
-      "class": "vacuumcleaner",
-      "energy": {
-        "batteries": [ "INTERNAL" ]
-      },
-      "capabilities": [
-        "vacuumcleaner_state",
-        "measure_battery",
-        "bin_full",
-        "bin_present"
-      ],
-      "images": {
-        "large": "/drivers/irobot/assets/images/large.png",
-        "small": "/drivers/irobot/assets/images/small.png"
-      },
-      "pair": [
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_irobot"
-          },
-          "options": {
-            "singular": true
-          }
-        },
-        {
-          "id": "add_irobot"
-        }
-      ]
-    },
-    {
-      "id": "roomba980",
-      "name": {
-        "en": "Roomba 980",
-        "nl": "Roomba 980"
-      },
-      "deprecated": true,
-      "class": "vacuumcleaner",
-      "energy": {
-        "batteries": [ "INTERNAL" ]
-      },
-      "capabilities": [
-        "vacuumcleaner_state",
-        "measure_battery",
-        "bin_full",
-        "bin_present"
-      ],
-      "images": {
-        "large": "/drivers/roomba980/assets/images/large.png",
-        "small": "/drivers/roomba980/assets/images/small.png"
-      },
-      "pair": [
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_irobot"
-          },
-          "options": {
-            "singular": true
-          }
-        },
-        {
-          "id": "add_irobot"
-        }
-      ]
-    },
-    {
-      "id": "braava",
       "name": {
         "en": "iRobot mob",
         "nl": "iRobot dweil"
       },
       "class": "vacuumcleaner",
       "energy": {
-        "batteries": [ "INTERNAL" ]
+        "batteries": [
+          "INTERNAL"
+        ]
       },
       "capabilities": [
         "vacuumcleaner_state",
@@ -318,7 +180,151 @@
         {
           "id": "add_braava"
         }
-      ]
+      ],
+      "id": "braava"
+    },
+    {
+      "name": {
+        "en": "iRobot vacuumcleaner",
+        "nl": "iRobot stofzuiger"
+      },
+      "class": "vacuumcleaner",
+      "energy": {
+        "batteries": [
+          "INTERNAL"
+        ]
+      },
+      "capabilities": [
+        "vacuumcleaner_state",
+        "measure_battery",
+        "bin_full",
+        "bin_present"
+      ],
+      "images": {
+        "large": "/drivers/irobot/assets/images/large.png",
+        "small": "/drivers/irobot/assets/images/small.png"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_irobot"
+          },
+          "options": {
+            "singular": true
+          }
+        },
+        {
+          "id": "add_irobot"
+        }
+      ],
+      "id": "irobot"
+    },
+    {
+      "name": {
+        "en": "Roomba 980",
+        "nl": "Roomba 980"
+      },
+      "deprecated": true,
+      "class": "vacuumcleaner",
+      "energy": {
+        "batteries": [
+          "INTERNAL"
+        ]
+      },
+      "capabilities": [
+        "vacuumcleaner_state",
+        "measure_battery",
+        "bin_full",
+        "bin_present"
+      ],
+      "images": {
+        "large": "/drivers/roomba980/assets/images/large.png",
+        "small": "/drivers/roomba980/assets/images/small.png"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_irobot"
+          },
+          "options": {
+            "singular": true
+          }
+        },
+        {
+          "id": "add_irobot"
+        }
+      ],
+      "id": "roomba980"
     }
-  ]
+  ],
+  "capabilities": {
+    "bin_full": {
+      "title": {
+        "en": "Bin full",
+        "nl": "Afvalbak vol"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor"
+    },
+    "bin_present": {
+      "title": {
+        "en": "Bin present",
+        "nl": "Afvalbak aanwezig"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor"
+    },
+    "detected_pad": {
+      "title": {
+        "en": "Detected pad",
+        "nl": "Dweildoek aawezig"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/pad.svg"
+    },
+    "lid_closed": {
+      "title": {
+        "en": "Lid is closed",
+        "nl": "Deksel is dicht"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/lid.svg"
+    },
+    "tank_full": {
+      "title": {
+        "en": "Watertank full",
+        "nl": "Watertank vol"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/tank_full.svg"
+    },
+    "tank_present": {
+      "title": {
+        "en": "Watertank present",
+        "nl": "Watertank aanwezig"
+      },
+      "type": "boolean",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/drivers/braava/assets/tank_full.svg"
+    }
+  }
 }

@@ -1,0 +1,10 @@
+{
+  "title": {
+    "en": "Bin present",
+    "nl": "Afvalbak aanwezig"
+  },
+  "type": "boolean",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor"
+}
