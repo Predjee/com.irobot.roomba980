@@ -1,11 +1,17 @@
----
-name: This issue tracker is disabled
-about: Please report issues at https://github.com/athombv/homey/issues
+## Expected Behavior
 
----
 
-# This issue tracker is disabled
+## Actual Behavior
 
-Please report issues [here](https://github.com/athombv/homey/issues). This issue tracker will not be monitored.
 
-Thank you for your cooperation!
+## Steps to Reproduce the Problem
+
+  1.
+  1.
+  1.
+
+## Specifications
+
+  - Version:
+  - Platform:
+  - Subsystem:
