@@ -1,0 +1,14 @@
+{
+  "id": "bin_full",
+  "title": {
+    "en": "Bin !{{is|isn't}} full",
+    "nl": "Vuilbak !{{is|is niet}} vol"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=irobot|roomba980"
+    }
+  ]
+}

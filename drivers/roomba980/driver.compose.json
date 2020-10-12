@@ -1,0 +1,38 @@
+{
+  "name": {
+    "en": "Roomba 980",
+    "nl": "Roomba 980"
+  },
+  "deprecated": true,
+  "class": "vacuumcleaner",
+  "energy": {
+    "batteries": [
+      "INTERNAL"
+    ]
+  },
+  "capabilities": [
+    "vacuumcleaner_state",
+    "measure_battery",
+    "bin_full",
+    "bin_present"
+  ],
+  "images": {
+    "large": "/drivers/roomba980/assets/images/large.png",
+    "small": "/drivers/roomba980/assets/images/small.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_irobot"
+      },
+      "options": {
+        "singular": true
+      }
+    },
+    {
+      "id": "add_irobot"
+    }
+  ]
+}

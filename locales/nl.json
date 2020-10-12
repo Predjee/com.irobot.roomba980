@@ -1,18 +1,18 @@
 {
   "pair": {
     "add": {
-      "title": "Koppel je Roomba",
-      "press_home": "1. Plaats je Roomba in het laadstation.<br><br>2. Druk op de Home-knop op je Roomba totdat het een geluid maakt.<br><br>Verbinden kan tot 10 seconden duren."
+      "title": "Koppel je robot",
+      "press_home": "1. Plaats je robot in het laadstation.<br><br>2. Druk op de Home-knop op je robot totdat het een geluid maakt.<br><br>Verbinden kan tot 10 seconden duren."
     }
   },
   "error": {
-    "offline": "Roomba is offline",
+    "offline": "Apparaat is offline",
     "unknown": "Er is iets fout gegaan, probeer het opnieuw.",
     "duplicate_device": "Dit apparaat is al gekoppeld aan Homey.",
     "create_device_unknown": "Er is iets fout gegaan, dit apparaat kon niet aan Homey worden gekoppeld.",
-    "in_use": "Er is al iets verbonden met deze Roomba, het kan maximaal 1 verbinding tegelijk aan. Verbreek deze verbinding en probeer het opnieuw.",
-    "password_timeout": "Kon niet verbinden met deze Roomba, probeer het opnieuw.",
-    "spot_cleaning": "Eén plek stofzuigen is alleen mogelijk door op de knop van je Roomba te drukken.",
+    "in_use": "Er is al iets verbonden met deze robot, het kan maximaal 1 verbinding tegelijk aan. Verbreek deze verbinding en probeer het opnieuw.",
+    "password_timeout": "Kon niet verbinden met deze robot, probeer het opnieuw.",
+    "spot_cleaning": "Eén plek schoonmaken is alleen mogelijk door op de knop van je robot te drukken.",
     "failed_state_change": "Er ging iets fout"
   }
 }
