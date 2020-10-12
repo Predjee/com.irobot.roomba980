@@ -4,5 +4,8 @@
   },
   "4.0.0": {
     "en": "SDK 3 support and fixes in state changes"
+  },
+  "4.0.1": {
+    "en": "Race condition in debounce fix"
   }
 }
